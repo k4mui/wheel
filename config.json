@@ -1,0 +1,13 @@
+{
+    "server": "http://localhost/",
+    "image": {
+        "favicon": "http://localhost/images/favicon/",
+        "usercontents": "http://localhost/images/usercontents/"
+    },
+    "mysql": {
+        "server": "127.0.0.1",
+        "database": "wheel",
+        "user": "wheel_admin",
+        "password": "555-137"
+    }
+}
