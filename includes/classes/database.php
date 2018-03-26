@@ -276,13 +276,11 @@ class data_access {
     try {
       $stmt = $this->mysqli->prepare($sql);
       $stmt->bind_param("s", $email_address);
-      if ($stmt->execute()) {
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->free_result();
-        $stmt->close();
-      }
+      $result = $stmt->get_result()->fetch_assoc();
+      $stmt->free_result();
+      $stmt->close();
     } catch(Exception $e) {
-      //
+      //error_log();
     } finally {
       return $result;
     }

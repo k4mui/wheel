@@ -1,11 +1,12 @@
 <?php
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-require "$root/lib/init.php";
-require "$root/lib/db.php";
-require "$root/lib/validation.php";
+$root = dirname(__FILE__);
+require "$root/includes/init.php";
+require "$root/includes/classes/database.php";
+require "$root/includes/formatting.php";
+require "$root/includes/validation.php";
 
 
-$errors = NULL;
+$errors = null;
 
 if ($user->is_registered()) {
   $error = "You are already logged in.";
@@ -37,44 +38,33 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
   die();
 }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en-US">
 <head>
 	<meta charset="utf-8">
-	<title>wheel - Registration</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon/favicon.ico" />
-	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css" />
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css" />
+  <title>wheel - Register</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/i/f/32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/i/f/96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/i/f/16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/i/f/fi.ico">
+	<link href="/f/fa/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="/js/wheel.js"></script>
 </head>
 <body>
 	<div id="wrap-all">
-  <div id="head">
+    <div id="head">
 			<div id="user-panel">
 				<div class="row">
           <ul class="list float-left">
-            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/">FAQ</a></li>
-            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/">Help</a></li>
-            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/">Rules</a></li>
+            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/faq.php">FAQ</a></li>
+            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/faq.php#about">About</a></li>
+            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/rules.php">Rules</a></li>
           </ul>
 					<ul class="list float-right">
 						<?php
-            if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_registered()) { // common for registered
-              echo "<li><i class=\"fas fa-user\"></i> <a href=\"/account.php\">Account</a></li>"
-                .  "<li><i class=\"fas fa-sign-out-alt\"></i> <a href=\"/logout.php\">Logout</a></li>";
-            } else { // anon
-              echo "<li><i class=\"fas fa-user-plus\"></i> <a href=\"/register.php\">Register</a></li>"
-                .  "<li><i class=\"fas fa-sign-in-alt\"></i> <a href=\"/login.php\">Login</a></li>";
-            }
+            echo '<li><i class="fas fa-user-plus"></i> <a href="/register.php">Register</a></li>
+            <li><i class="fas fa-sign-in-alt"></i> <a href="/login.php">Login</a></li>';
             ?>
 					</ul>
 				</div> <!-- .row -->
@@ -115,26 +105,37 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         }
         ?>
         </div>
-        <div>
-          <form class="account-form" action="" method="post">
-            Email Address:<br/>
-            <input type="text" name="email_address" maxlength="254" value=""/><br/>
-            Password:<br/>
-            <input type="password" name="password"/><br/>
-            Confirm Password:<br/>
-            <input type="password" name="confirm_password"/><br/>
+        <div onkeyup="check_reg_form()">
+          <form class="account-form" action="" name="reg_form" method="POST">
+            Email Address: <span id="side_error_ea"></span><br/>
+            <input type="text" name="email_address" maxlength="254" value=""><br/>
+            Password: <span id="side_error_pw"></span><br/>
+            <input type="password" name="password"><br/>
+            Confirm Password: <span id="side_error_cpw"></span><br/>
+            <input type="password" name="confirm_password"><br/>
             · Already have an account? <a href="/login.php">Login here</a>.
             <br/>
             · By registering, you agree to our <a href="">Terms</a>.
             <br/>
-            <input type="submit" value="Create account"/>
+            <input type="submit" value="Create account" name="submit">
           </form>
         </div>
       </div> <!-- #form-area -->
 		</div> <!-- #body-wrapper -->
 		<div id="foot">
-			&copy; 2018 wheel
-		</div> <!-- #footer -->
+      <ul class="list">
+        <li><a href="/privacy.php">Privacy</a></li>
+        <li><a href="/terms.php">Terms</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+      </ul>
+			<div>&copy; 2018 wheel. All rights reserved. All times are in UTC.</div>
+		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
+  <script>
+    // self executing function here
+    (function() {
+      disable_button('reg_form');
+    })();
+    </script>
 </body>
 </html>

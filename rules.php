@@ -1,8 +1,6 @@
 <?php
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-require "$root/lib/init.php";
-//require "$root/lib/db.php";
-//require "$root/lib/validation.php";
+$root = dirname(__FILE__);
+require "$root/includes/init.php";
 
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
@@ -11,18 +9,18 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
   die();
 }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!DOCTYPE html>
+<html lang="en-US">
 <head>
 	<meta charset="utf-8">
-	<title>wheel - Rules</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon/favicon.ico" />
-	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css" />
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css" />
+  <title>wheel - Rules</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico">
+	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="wrap-all">
