@@ -1,0 +1,14 @@
+[25-Mar-2018 15:47:27 UTC] He
+[25-Mar-2018 15:53:06 UTC] 3 hi
+[25-Mar-2018 16:28:37 UTC] PHP Notice:  Array to string conversion in /home/obi/dev/localhost/wheel/index.php on line 28
+[25-Mar-2018 16:28:38 UTC] PHP Notice:  Array to string conversion in /home/obi/dev/localhost/wheel/index.php on line 28
+[25-Mar-2018 16:28:42 UTC] PHP Notice:  Array to string conversion in /home/obi/dev/localhost/wheel/index.php on line 28
+[26-Mar-2018 11:56:16 UTC] PHP Warning:  require(/home/obi/dev/localhost/wheel/lib/postprocessing.php): failed to open stream: No such file or directory in /home/obi/dev/localhost/wheel/viewdiscussion.php on line 5
+[26-Mar-2018 11:56:16 UTC] PHP Fatal error:  require(): Failed opening required '/home/obi/dev/localhost/wheel/lib/postprocessing.php' (include_path='.:/usr/local/lib/php') in /home/obi/dev/localhost/wheel/viewdiscussion.php on line 5
+[26-Mar-2018 12:12:51 UTC] PHP Notice:  Undefined property: data_access::$conn in /home/obi/dev/localhost/wheel/lib/db.php on line 191
+[26-Mar-2018 12:16:48 UTC] PHP Notice:  Undefined variable: stmt in /home/obi/dev/localhost/wheel/lib/db.php on line 226
+[26-Mar-2018 12:16:56 UTC] PHP Notice:  Undefined variable: stmt in /home/obi/dev/localhost/wheel/lib/db.php on line 226
+[26-Mar-2018 12:18:44 UTC] PHP Fatal error:  Uncaught Error: Call to undefined method user::is_anon() in /home/obi/dev/localhost/wheel/search.php:60
+Stack trace:
+#0 {main}
+  thrown in /home/obi/dev/localhost/wheel/search.php on line 60

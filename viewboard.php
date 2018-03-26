@@ -1,8 +1,8 @@
 <?php
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-require "$root/lib/init.php";
-require "$root/lib/db.php";
-require "$root/lib/post_processing.php";
+$root = dirname(__FILE__);
+require "$root/includes/init.php";
+require "$root/includes/classes/database.php";
+require "$root/includes/formatting.php";
 
 
 if ($_SERVER['REQUEST_METHOD'] !== "GET") {

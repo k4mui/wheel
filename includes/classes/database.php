@@ -1,8 +1,7 @@
 <?php
-require_once(__DIR__."/../models/board.php");
-require_once(__DIR__."/../models/discussion.php");
-require_once(__DIR__."/../models/user.php");
-require_once(__DIR__."/../lib/load_config.php");
+require_once(__DIR__."/board.php");
+require_once(__DIR__."/discussion.php");
+require_once(__DIR__."/user.php");
 
 
 class data_access {
@@ -21,15 +20,11 @@ class data_access {
   } // function: __destruct
 
   public static function get_instance() {
-    global $config;
-    mysqli_report(MYSQLI_REPORT_STRICT);
+    global $dbname, $dbpwd, $dbserver, $dbuser;
+    mysqli_report(MYSQLI_REPORT_ALL ^ MYSQLI_REPORT_INDEX);
     
     try {
-      $mysqli = new mysqli($config['mysql']['server'],
-                           $config['mysql']['user'],
-                           $config['mysql']['password'],
-                           $config['mysql']['database']
-                          );
+      $mysqli = new mysqli($dbserver, $dbuser, $dbpwd, $dbname);
       $ins = new self($mysqli);
       return $ins;
     } catch (Exception $e) {
@@ -65,18 +60,13 @@ class data_access {
     $rows = null;
     try {
       $result = $this->mysqli->query($sql);
-
-      if (!$result) {
-        throw new Exception($this->mysqli->error);      
-      }
       $rows = array();
       while ($row = $result->fetch_assoc()) {
         $rows[] = $row;
       }
       $result->free();
     } catch (Exception $e) {
-      //echo "We are currently experiencing issues. Please try again later.";
-      //echo $e->getMessage();
+      error_log('[DBError] '.$e->getMessage());
     } finally {
       return $rows;
     }
@@ -190,6 +180,21 @@ class data_access {
     }
   } // function: get_discussions
 
+  public function get_discussion_object($discussion_id) {
+    $result = null;
+    try {
+      $stmt = $this->mysqli->prepare("SELECT d.author_id, d.archived, d.id, d.title, d.creation_timestamp, d.full_text, d.board_id, i.filename, b.fa_icon, b.title AS board_title  FROM discussions AS d, images AS i, boards AS b WHERE d.id = ? AND d.image_id = i.id AND b.id = d.board_id");
+      $stmt->bind_param('i', $discussion_id);
+      $stmt->execute();
+      $row = $stmt->get_result()->fetch_assoc();
+      $result = discussion::with_row_x($row);
+    } catch(Exception $e) {
+      error_log('[DBError] '.$e->getMessage());
+    } finally {
+      return $result;
+    }
+  } // function: get_discussion_object
+
   public function get_recent_discussions() {
     $sql = "SELECT d.id,
                    d.title,
@@ -208,22 +213,45 @@ class data_access {
     $rows = null;
     try {
       $result = $this->mysqli->query($sql);
-
-      if (!$result) {
-        throw new Exception($mysqli->error);      
-      }
       $rows = array();
       while ($row = $result->fetch_assoc()) {
         $rows[] = $row;
       }
       $result->free();
     } catch (Exception $e) {
-      //echo "We are currently experiencing issues. Please try again later.";
-      //echo $e->getMessage();
+      error_log('[DBError] '.$e->getMessage());
     } finally {
       return $rows;
     }
   } // function: get_recent_discussions
+
+  public function get_replies($discussion_id) {
+    $rows = null;
+    try {
+      $sql = "SELECT r.id,
+                     r.full_text,
+                     r.creation_timestamp,
+                     i.filename
+              FROM replies AS r
+              LEFT JOIN images AS i
+              ON r.image_id = i.id
+              WHERE r.discussion_id = ?";
+      $stmt = $this->mysqli->prepare($sql);
+      $stmt->bind_param('i', $discussion_id);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $rows = array();
+      while($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+      }
+      $result->free();
+      $stmt->close();
+    } catch(Exception $e) {
+      error_log('[DBError] '.$e->getMessage());
+    } finally {
+      return $rows;
+    }
+  } // function: get_replies
 
   public function get_site_stats() {
     $sql = 'SELECT (SELECT IFNULL(COUNT(*), 0) FROM discussions) AS discussion_count,
@@ -232,16 +260,11 @@ class data_access {
             (SELECT IFNULL(SUM(size), 0) FROM images) AS image_size';
     $row = null;
     try {
-      $result = $this->mysqli->query($sql);
-
-      if (!$result) {
-        throw new Exception($mysqli->error);      
-      } 
+      $result = $this->mysqli->query($sql); 
       $row = $result->fetch_assoc();
       $result->free();
     } catch (Exception $e) {
-      //echo "We are currently experiencing issues. Please try again later.";
-      //echo $e->getMessage();
+      error_log('[DBError] '.$e->getMessage());
     } finally {
       return $row;
     }
@@ -287,23 +310,54 @@ class data_access {
     $extension = image_type_to_extension($info[2]);
     $target_filename = md5_file($image['tmp_name']) . $extension;
     $result = null;
+    $exists = false;
+    $moved = false;
 
-    if (move_uploaded_file($image["tmp_name"], "$image_dir$target_filename")) {
-      try {
-        $stmt = $this->mysqli->prepare("INSERT INTO images(filename, addition_timestamp, size) VALUES (?, ?, ?)");
-        $stmt->bind_param("ssi", $target_filename, $addition, $sz);
-        $addition = date("Y-m-d H:i:s", filectime("$image_dir$target_filename"));
-        $sz = filesize("$image_dir$target_filename");
-        if ($stmt->execute()) {
-          $stmt->close();
-          $result = $this->mysqli->insert_id;
-        }
-      } catch(Exception $e) {
-        unlink("$image_dir$target_filename");
-      } finally {
+    $success = false;
+
+    if (!file_exists("$image_dir$target_filename")) { // file not in server already
+      if(!move_uploaded_file($image["tmp_name"], "$image_dir$target_filename")) { // cannot move file to dest
         return $result;
+      } else {
+        $moved = true;
       }
     } else {
+      $exists = true;
+    }
+
+    try {
+      // file in server already or file moved to dest successfully
+      $stmt = $this->mysqli->prepare("INSERT INTO images(filename, size) VALUES (?, ?)");
+      $stmt->bind_param("si", $target_filename, $file_size);
+      $file_size = filesize("$image_dir$target_filename");
+      $stmt->execute();
+      $stmt->close();
+      $result = $this->mysqli->insert_id;
+      /*$stmt = $this->mysqli->prepare("INSERT INTO images(filename, size) VALUES (?, ?)");
+      if ($stmt) { // prepare success
+        $success = $stmt->bind_param("si", $target_filename, $file_size);
+        if ($success) { // binding success
+          $file_size = filesize("$image_dir$target_filename");
+          if ($file_size) { // file size success
+            $success = $stmt->execute();
+            if ($success) { // execute success
+              $stmt->close();
+              $result = $this->mysqli->insert_id;
+            } else { // execute error
+              error_log('[DBError] '.htmlspecialchars($stmt->error));
+            }
+          } else { // file size error
+            error_log('[DBError] '.' Cannot get size of '.$image_dir.$target_filename);
+          }
+        } else { // binding error
+          error_log('[DBError] '.htmlspecialchars($stmt->error));
+        }
+      } else { // prepare error
+        error_log('[DBError] '.htmlspecialchars($this->mysqli->error));
+      }*/
+    } catch(Exception $e) {
+      error_log('[DBError] '.$e->getMessage());
+    } finally {
       return $result;
     }
   } // function: insert_image

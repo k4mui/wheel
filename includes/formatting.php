@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('UTC');
 
 function mysql_timestamp_to_date($mysql_timestamp) {
     $timestamp = strtotime($mysql_timestamp);
