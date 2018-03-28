@@ -9,12 +9,12 @@ if (!isset($error)) {
 <head>
 	<meta charset="utf-8">
   <title>wheel - Error</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="wrap-all">
@@ -22,24 +22,21 @@ if (!isset($error)) {
 			<div id="user-panel">
 				<div class="row">
           <ul class="list float-left">
-            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/">FAQ</a></li>
-            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/">Help</a></li>
-            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/">Rules</a></li>
+            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/faq.php">FAQ</a></li>
+            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/faq.php#about">About</a></li>
+            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/rules.php">Rules</a></li>
           </ul>
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
+              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
             }
             if ($user->is_registered()) { // common for registered
-              echo "<li><i class=\"fas fa-user\"></i> <a href=\"/account.php\">Account</a></li>"
-                .  "<li><i class=\"fas fa-sign-out-alt\"></i> <a href=\"/logout.php\">Logout</a></li>";
+              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
+                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
             } else { // anon
-              echo "<li><i class=\"fas fa-user-plus\"></i> <a href=\"/register.php\">Register</a></li>"
-                .  "<li><i class=\"fas fa-sign-in-alt\"></i> <a href=\"/login.php\">Login</a></li>";
+              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
+                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
             }
             ?>
 					</ul>
@@ -47,7 +44,7 @@ if (!isset($error)) {
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
 						<form class="input-group" action="index.html" method="get">

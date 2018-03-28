@@ -2,6 +2,7 @@
 class user {
   private $id;
   private $role;
+  private $board_id;
 
 
   function __construct() {
@@ -14,6 +15,14 @@ class user {
     $this->role = 0;
   }
 
+  public function get_board_id() {
+    return $this->board_id;
+  }
+
+  public function set_board_id($bid) {
+    $this->board_id = $bid;
+  }
+  
   public function get_id() {
     return $this->id;
   }
@@ -40,8 +49,13 @@ class user {
     return $this->role == 3;
   }
 
-  public function is_mod() {
-    return $this->role == 2;
+  public function is_mod_of($board_id) {
+    return $this->is_registered() && $this->board_id === $board_id;
+  }
+
+  public function is_same($author_id) {
+    //return true;
+    return $this->is_registered() && $this->id === $author_id;
   }
 
   public function is_registered() {
@@ -51,6 +65,7 @@ class user {
   public function update($user) {
     $this->set_id($user['id']);
     $this->set_role($user['role']);
+    $this->set_board_id($user['board_id']);
   }
 }
 ?>

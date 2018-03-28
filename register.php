@@ -43,11 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <head>
 	<meta charset="utf-8">
   <title>wheel - Register</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/i/f/32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/i/f/96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/i/f/16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/i/f/fi.ico">
-	<link href="/f/fa/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
 	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="/js/wheel.js"></script>
 </head>
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
             <form class="input-group" action="/search.php" method="GET">
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         }
         ?>
         </div>
-        <div onkeyup="check_reg_form()">
+        <div oninput="check_reg_form()">
           <form class="account-form" action="" name="reg_form" method="POST">
             Email Address: <span id="side_error_ea"></span><br/>
             <input type="text" name="email_address" maxlength="254" value=""><br/>
@@ -132,7 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
   <script>
-    // self executing function here
     (function() {
       disable_button('reg_form');
     })();

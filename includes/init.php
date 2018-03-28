@@ -1,7 +1,7 @@
 <?php
 date_default_timezone_set('UTC');
 
-define('DEBUG', true);
+define('DEBUG', false);
 define('WHEEL_ROOT', '/home/obi/dev/localhost/wheel');
 
 require(WHEEL_ROOT.'/includes/classes/user.php');

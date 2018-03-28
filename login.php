@@ -25,12 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
     }
     $u = $da->get_user($_POST['email_address']);
     if ($u) {
-      if ($u['password_hash'] === md5($_POST['password'])) {
-        $success = "Login successful.";
-        $user->update($u);
-        include("success.php");
-        unset($u);
-        die();
+      if ($u[0]['password_hash'] === md5($_POST['password'])) {
+        if ($u[0]['account_status']===1) {
+          $success = "Login successful.";
+          $user->update($u[0]);
+          include("success.php");
+          unset($u);
+          die();
+        } else {
+          $errors[] = "Your account is deactivated.";
+        }
       } else {
         $errors[] = "Wrong password.";
       }
@@ -50,11 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <head>
 	<meta charset="utf-8">
   <title>wheel - Login</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/i/f/32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/i/f/96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/i/f/16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/i/f/fi.ico">
-	<link href="/f/fa/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
 	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="/js/wheel.js"></script>
 </head>
@@ -78,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/i/shishui.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
             <form class="input-group" action="/search.php" method="GET">
@@ -112,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
           }
           ?>
         </div>
-        <div onkeydown="check_login_form()">
+        <div oninput="check_login_form()">
           <form class="account-form" name="login_form" action="" method="POST">
             Email Address: <span id="side_error_ea"></span><br/>
             <input type="text" name="email_address" maxlength="254" value=""><br/>
@@ -137,7 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
   <script>
-    // self executing function here
     (function() {
       disable_button('login_form');
     })();

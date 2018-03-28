@@ -1,8 +1,8 @@
 <?php
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-require "$root/lib/init.php";
-require "$root/lib/db.php";
-require "$root/lib/validation.php";
+$root = dirname(__FILE__);
+require "$root/includes/init.php";
+require "$root/includes/classes/database.php";
+require "$root/includes/validation.php";
 
 
 $title = null;
@@ -19,14 +19,13 @@ if ($board_id === 0) {
 }
 
 $da = data_access::get_instance();
-$board = $da->get_board_object_sm($board_id);
+$board = $da->get_board($board_id);
 if ($board === null) {
   unset($da);
   $error = "The board you are trying to access is not a valid board.";
   include("error.php");
   die();
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_POST['title'])) {
@@ -35,9 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_POST['full_text'])) {
     $full_text = $_POST['full_text'];
   }
-  if (isset($_FILES['attachment'])) {
-    $image = $_FILES['attachment'];
-  }
+  $image = $_FILES['attachment'];
   if ($title) {
     check_discussion_title($title, $errors);
   } else {
@@ -53,12 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   } else {
     $errors[] = "A relevant image must be attached.";
   }
-	if (count($errors) === 0) {
-    //success
-    $image_id = $da->insert_image($image, "$root/images/usercontents/", $user);
+	if (count($errors) === 0) { // success
+    $image_id = $da->insert_image($image);
     if ($image_id) {
-      if ($da->insert_discussion($title, $full_text, $image_id, $user, $board)) {
-        header("Location: viewboard.php?id=" . $board->get_id());
+      if ($da->insert_discussion($title, $full_text, $image_id, $user->get_id(), $board['id'])) {
+        header("Location: vb.php?id={$board['id']}");
         die();
       } else {
         $errors[] = "Cannot create discussion. Please try again later.";
@@ -74,22 +70,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 unset($da);
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang='en-US'>
 <head>
 	<meta charset="utf-8">
   <title>wheel - New Discussion</title>
-	<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png" />
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico" />
+	<link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png" />
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico" />
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css" />
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css" />
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css" />
 </head>
 <body>
 	<div id="wrap-all">
-  <div id="head">
+    <div id="head">
 			<div id="user-panel">
 				<div class="row">
           <ul class="list float-left">
@@ -100,9 +95,6 @@ unset($da);
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
               echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
             }
             if ($user->is_registered()) { // common for registered
@@ -118,12 +110,12 @@ unset($da);
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
             <form class="input-group" action="/search.php" method="GET">
-              <input type="text" name="q" placeholder="Search discussions..." />
-              <input type="hidden" name="id" value="-1" />
+              <input type="text" name="q" placeholder="Search discussions...">
+              <input type="hidden" name="id" value="-1">
 							<button type="submit">
 								<i class="fas fa-search"></i>
 							</button>
@@ -135,9 +127,9 @@ unset($da);
         <ul class="list">
           <li><i class="fas fa-home"></i> <a href="/">Boards Index</a></li>
           <li>/</li>
-          <li><i class="fas fa-<?php echo $board->get_icon(); ?>"></i> <a href="/viewboard.php?id=<?php echo $board->get_id(); ?>">Board: <?php echo $board->get_title(); ?></a></li>
+          <li><i class="fas fa-<?php echo $board['fa_icon']; ?>"></i> <a href="/viewboard.php?id=<?php echo $board['id']; ?>">Board: <?php echo $board['title']; ?></a></li>
           <li>/</li>
-          <li><i class="fas fa-file"></i> <a href="/newdiscussion.php?id=<?php echo $board->get_id(); ?>">New Discussion</a></li>
+          <li><i class="fas fa-file"></i> <a href="/newdiscussion.php?id=<?php echo $board['id']; ?>">New Discussion</a></li>
         </ul>
 			</div> <!-- #page-title -->
 		</div> <!-- #head -->

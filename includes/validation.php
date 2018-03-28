@@ -51,15 +51,29 @@ function check_discussion_text($text, & $errors) {
   }
 }
 function check_discussion_attachment($image, & $errors) {
-  if (isset($image['tmp_name']) && $image['tmp_name']) {
-    $size = getimagesize($image['tmp_name']);
-    if ($size === false) {
-      $errors[] = 'The attachment is invalid.';
-    } else if ($size > (12*1048576)) {
-      $errors[] = 'The attachment is too big. Maximum size is 12mb.';
-    }
-  } else {
-    $errors[] = 'A relevant image must be attached.';
+  switch($image['error']) {
+    case UPLOAD_ERR_OK: // all ok
+      if (substr($image['type'], 0, 5)!=='image') {
+        $errors[] = 'Attachment must be an image.';
+      } else if ($image['size'] > (12*1048576)) {
+        $errors[] = 'Attachment too big. Maximum size is 12mb.';
+      }
+      break;
+    case UPLOAD_ERR_INI_SIZE:
+      $errors[] = 'Attachment too big. Maximum size is 12mb.';
+      break;
+    case UPLOAD_ERR_FORM_SIZE:
+      $errors[] = 'Attachment too big. Maximum size is 12mb.';
+      break;
+    case UPLOAD_ERR_NO_FILE:
+      $errors[] = 'A relevant image must be attached.';
+      break;
+    case UPLOAD_ERR_PARTIAL:
+      $errors[] = 'Attachment partially uploaded. Try again.';
+      break;
+    default:
+      $errors[] = $image['errpr'].' Error. Try again.';
+      error_log('[FileUploadError] '.$image['error']);
   }
 }
 

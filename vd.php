@@ -27,7 +27,7 @@ if ($da === null) {
   die();
 }
 
-$discussion = $da->get_discussion_object($discussion_id);
+$discussion = $da->get_discussion($discussion_id);
 if ($discussion === null) {
   include("error.php");
   unset($da);
@@ -49,13 +49,13 @@ unset($da);
 <html lang="en-US">
 <head>
 	<meta charset="utf-8">
-  <title>wheel - <?php echo $discussion->get_title(); ?></title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico">
+  <title>wheel - <?php echo $discussion['title']; ?></title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="wrap-all">
@@ -70,17 +70,14 @@ unset($da);
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
+              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
             }
             if ($user->is_registered()) { // common for registered
-              echo "<li><i class=\"fas fa-user\"></i> <a href=\"/account.php\">Account</a></li>"
-                .  "<li><i class=\"fas fa-sign-out-alt\"></i> <a href=\"/logout.php\">Logout</a></li>";
+              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
+                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
             } else { // anon
-              echo "<li><i class=\"fas fa-user-plus\"></i> <a href=\"/register.php\">Register</a></li>"
-                .  "<li><i class=\"fas fa-sign-in-alt\"></i> <a href=\"/login.php\">Login</a></li>";
+              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
+                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
             }
             ?>
 					</ul>
@@ -88,12 +85,12 @@ unset($da);
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
             <form class="input-group" action="/search.php" method="GET">
-              <input type="text" name="q" placeholder="Search discussions..." />
-              <input type="hidden" name="id" value="-1" />
+              <input type="text" name="q" placeholder="Search discussions...">
+              <input type="hidden" name="id" value="-1">
 							<button type="submit">
 								<i class="fas fa-search"></i>
 							</button>
@@ -105,9 +102,9 @@ unset($da);
         <ul class="list">
           <li><i class="fas fa-home"></i> <a href="/">Boards Index</a></li>
           <li>/</li>
-          <li><i class="fas fa-<?php echo $discussion->get_board_icon(); ?>"></i> <a href="/viewboard.php?id=<?php echo $discussion->get_board_id(); ?>">Board: <?php echo $discussion->get_board_title(); ?></a></li>
+          <li><i class="fas fa-<?php echo $discussion['fa_icon']; ?>"></i> <a href="/vb.php?id=<?php echo $discussion['board_id']; ?>">Board: <?php echo $discussion['board_title']; ?></a></li>
           <li>/</li>
-          <li><i class="fas fa-<?php echo $discussion->get_board_icon(); ?>"></i> <a href="/viewdiscussion.php?id=<?php echo $discussion->get_id(); ?>"><?php echo $discussion->get_title(); ?></a></li>
+          <li><i class="fas fa-<?php echo $discussion['fa_icon']; ?>"></i> <a href="/vd.php?id=<?php echo $discussion['id']; ?>"><?php echo $discussion['title']; ?></a></li>
         </ul>
 			</div> <!-- #page-title -->
 		</div> <!-- #head -->
@@ -115,28 +112,28 @@ unset($da);
       <div class="row" id="boards-button-section">
         <ul class="list float-left">
           <?php
-          if (!$discussion->is_archived()) {
+          if (!$discussion['archived']) {
             echo "<li>"
-							.    "<a class=\"btn bg-success fg-white\" href=\"/newreply.php?id=" . $discussion->get_id() . "\"><i class=\"fas fa-file\"></i> New Reply</a>"
+							.    "<a class=\"btn bg-success fg-white\" href=\"/nr.php?id=" . $discussion['id'] . "\"><i class=\"fas fa-file\"></i> New Reply</a>"
 							.  "</li>";
-						if ($user->is_admin()) {
+						if ($user->is_admin() || $user->is_mod_of($discussion['board_id'])) {
 							echo "<li>"
-								.    "<a class=\"btn bg-pomegranate fg-white\" href=\"/archive.php?id=" . $discussion->get_id() . "\"><i class=\"fas fa-lock\"></i> Archive</a>"
+								.    "<a class=\"btn bg-pomegranate fg-white\" href=\"/archive.php?id=" . $discussion['id'] . "\"><i class=\"fas fa-lock\"></i> Archive</a>"
 								.  "</li>";
 						}
 					} else {
 						echo "<li><a class=\"btn bg-lock fg-white\" href=\"faq.php#locked-board\"><i class=\"fas fa-lock\"></i> Archived</a></li>";
           }
-          if ($discussion->get_author_id() === $user->get_id() && $user->is_registered()) {
-            echo "<li><a class=\"btn bg-lock fg-white\" href=\"remove.php?id=" . $discussion->get_id() . "\"><i class=\"fas fa-lock\"></i> Remove</a></li>";
+          if ($discussion['author_id'] === $user->get_id() && $user->is_registered()) {
+            echo "<li><a class=\"btn bg-lock fg-white\" href=\"remove.php?id=" . $discussion['id'] . "\"><i class=\"fas fa-lock\"></i> Remove</a></li>";
           }
 
           ?>
         </ul>
         <div id="board-search" class="float-right">
           <form class="input-group" action="/search.php" method="GET">
-            <input type="text" name="q" placeholder="Search this discussion..." />
-            <input type="hidden" name="did" value="<?php echo $discussion->get_id(); ?>" />
+            <input type="text" name="q" placeholder="Search this discussion...">
+            <input type="hidden" name="did" value="<?php echo $discussion['id']; ?>">
             <button type="submit">
               <i class="fas fa-search"></i>
             </button>
@@ -145,22 +142,24 @@ unset($da);
       </div>
 			<div class="row">
         <div id="replies-section">
-          <div class="discussion-head">OP <?php echo $discussion->get_creation_timestamp(); ?></div>
+          <div class="discussion-head" id="op"><?php echo mysql_timestamp_to_date($discussion['creation_timestamp']); ?></div>
           <div class="discussion-item">
-            <a href="<?php echo "/images/usercontents/" . $discussion->get_image_filename(); ?>"><img class="post-image" src="<?php echo "/images/usercontents/" . $discussion->get_image_filename(); ?>"/></a>
-            <?php echo $discussion->get_full_text(); ?>
+            <a href="<?php echo "/images/usercontents/" . $discussion['filename']; ?>"><img class="post-image" src="<?php echo "/images/usercontents/" . $discussion['filename']; ?>"/></a>
+            <?php echo $discussion['full_text']; ?>
           </div>
         </div> <!-- #replies-section -->
         <?php
           if($rows) {
             foreach($rows as $id => $row) {
-              echo "<div class=\"reply\">"
-                .  "<div class=\"reply-head\">#" . $row["id"] . " - " . $row["creation_timestamp"] . "</div>"
-                .  "<div class=\"reply-body\">";
-              if($row["filename"]) {
-                echo "<a href=\"/images/usercontents/" . $row["filename"] . "\"><img class=\"post-image\" src=\"/images/usercontents/" . $row["filename"] . "\"/></a>";
+              echo "<div class='reply' id='{$row['id']}'>
+                      <div class='reply-head'><a href='/vd.php?id={$discussion['id']}#{$row['id']}'>#{$row['id']}</a> - " . mysql_timestamp_to_date($row['creation_timestamp']) .
+                      ($user->is_same($row['author_id']) ? " [<a href='rr.php?id={$row['id']}'>Remove</a>]" : "" ).
+                      "</div>
+                    <div class='reply-body'>";
+              if($row['filename']) {
+                echo "<a href='/images/usercontents/" . $row['filename'] . "'><img class='post-image' src='/images/usercontents/" . $row["filename"] . "'/></a>";
               }
-              echo $row["full_text"] .  "</div></div>";
+              echo $row['full_text'] .  '</div></div>';
             }
           } else {
             echo "<div class='reply'><div class='reply-head'>No replies yet!</div></div>";

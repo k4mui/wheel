@@ -18,7 +18,18 @@ if ($da === null) {
 }
 
 $stats = $da->get_site_stats();
-$rows = $da->get_boards_data();
+$rows = $da->get_boards();
+
+foreach($rows as $k => $v) {
+  $rows[$k]['stats'] = $da->get_board_stats($rows[$k]['id']);
+  $rows[$k]['recent'] = $da->get_recent_discussion($rows[$k]['id']);
+  if (!$rows[$k]['stats']) {
+    include('error.php');
+    unset($da);
+    die();
+  }
+}
+
 $discussions = $da->get_recent_discussions();
 if ($rows == null || $stats == null) {
   include("error.php");
@@ -34,11 +45,11 @@ unset($da);
 <head>
 	<meta charset="utf-8">
   <title>wheel - Home</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/i/f/32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/i/f/96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/i/f/16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/i/f/fi.ico">
-	<link href="/f/fa/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
 	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
@@ -54,14 +65,14 @@ unset($da);
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-user-secret"></i> <a href="inbox.php">Admin Panel</a></li>';
+              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
             }
             if ($user->is_registered()) { // common for registered
-              echo '<li><i class="fas fa-user"></i> <a href="/account.php">Account</a></li>
-                    <li><i class="fas fa-sign-out-alt"></i> <a href="/logout.php">Logout</a></li>';
+              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
+                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
             } else { // anon
-              echo '<li><i class="fas fa-user-plus"></i> <a href="/register.php">Register</a></li>
-                    <li><i class="fas fa-sign-in-alt"></i> <a href="/login.php">Login</a></li>';
+              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
+                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
             }
             ?>
 					</ul>
@@ -69,7 +80,7 @@ unset($da);
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/i/shishui.png">
+          <img id="site-logo" src="/images/logos/shishui.png">
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
 						<form class="input-group" action="/search.php" method="GET">
@@ -102,19 +113,19 @@ unset($da);
                       <div class="boards-title">
                         <h3><a href="vb.php?id=' . $row['id'] . '">' . $row['title'] . '</a></h3>
                         <div class="boards-stats">
-                          <span class="fg-bright">Discussions:</span> <span class="fg-black">' . $row['discussion_count'] . '</span> ·
-                          <span class="fg-bright">Replies:</span> <span class="fg-black">' . $row['reply_count'] . '</span> ·
-                          <span class="fg-bright">Images:</span> <span class="fg-black">' . ($row['image_count_r']+$row['discussion_count']) . '</span>
+                          <span class="fg-bright">Discussions:</span> <span class="fg-black">' . $row['stats']['discussion_count'] . '</span> ·
+                          <span class="fg-bright">Replies:</span> <span class="fg-black">' . $row['stats']['reply_count'] . '</span> ·
+                          <span class="fg-bright">Images:</span> <span class="fg-black">' . ($row['stats']['image_count']+$row['stats']['discussion_count']) . '</span>
                         </div> <!-- .boards-stats -->
                       </div> <!-- .boards-title -->
                       <div class="boards-recent">
-                        <img class="recent-img" src="/i/uc/' . ($row['image_filename'] ?  $row['image_filename'] : '200x200.png') . '" alt="x"/>
+                        <img class="recent-img" src="/images/usercontents/' . (isset($row['recent']['filename']) && $row['recent']['filename'] ?  $row['recent']['filename'] : '200x200.png') . '" alt="x">
                         <div class="boards-recent-info">
                           <div class="boards-recent-title">
-                            <span class="fg-bright">Recent:</span> ' . ($row['last_discussion_title'] ? '<a href="/vd.php?id="' . $row['last_discussion_id'] . '">' . $row['last_discussion_title'] . '</a>' : 'No discussion yet') . '
+                            <span class="fg-bright">Recent:</span> ' . (isset($row['recent']['title']) ? '<a href="/vd.php?id=' . $row['recent']['id'] . '">' . $row['recent']['title'] . '</a>' : 'No discussion yet') . '
                           </div>
                           <div>
-                            <span class="fg-bright">Posted:</span> ' . ($row['last_discussion_timestamp'] ? mysql_timestamp_to_date($row['last_discussion_timestamp']) : 'No discussion yet') . '
+                            <span class="fg-bright">Posted:</span> ' . (isset($row['recent']['creation_timestamp']) && $row['recent']['creation_timestamp'] ? mysql_timestamp_to_date($row['recent']['creation_timestamp']) : 'No discussion yet') . '
                           </div>
                         </div>
                       </div>
@@ -131,7 +142,7 @@ unset($da);
             if ($discussions) {
               foreach($discussions as $id => $discussion) {
                 echo '<div class="recent-item">
-                        <img class="top" src="/i/uc/' . $discussion['filename'] . '">
+                        <img class="top" src="/images/usercontents/' . $discussion['filename'] . '">
                         <div class="recent-info">
                           <div class="boards-recent-title">
                             <a href="vd.php?id=' . $discussion['id'] . '">' . $discussion['title'] . '</a>
@@ -163,7 +174,7 @@ unset($da);
               </div>
               <div class="stats-item">
                 <span class="stats-left">Images:</span>
-                <span class="stats-right"><?php echo $stats['image_count']; ?> (<?php echo human_readable_filesize((int)$stats['image_size']); ?>)</span>
+                <span class="stats-right"><?php echo $stats['image_count']; ?></span>
               </div>
             </div>
           </div> <!-- #statistics-section -->

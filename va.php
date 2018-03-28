@@ -6,44 +6,57 @@ require "$root/includes/formatting.php";
 
 
 if ($_SERVER['REQUEST_METHOD'] !== "GET") {
-  $error = "The content you are trying to access is unavailable.";
-	include("404.php");
+  $error = "Invalid request.";
+	include("error.php");
 	die();
 }
 
-$board = NULL;
-$board_id = isset($_GET["id"]) ? (int)$_GET["id"] : NULL;
+$board = null;
+$board_id = isset($_GET["id"]) ? (int)$_GET["id"] : null;
+$error = "The board you are trying to access is invalid.";
+
 if ($board_id === 0) {
-  die("Wrong board id");
+	include("error.php");
+	die();
 }
 
-$da = new DataAccess;
-//echo "<pre>";
-$board = $da->get_board_x($board_id);
-$rows = $da->get_discussions_a($board->get_id());
-//echo "</pre>";
-//$board = $da->get_board_mysql($board_id);
-//$board = $da->get_board($board_id);
-unset($da);
-
-if ($board === NULL) {
-  $error = "The board you are trying to access is not a valid board :(";
-  include("404.php");
+$da = data_access::get_instance();
+if ($da === null) {
+  include("error.php");
   die();
 }
 
+$board = $da->get_board($board_id);
+if ($board === null) {
+  include("error.php");
+  unset($da);
+  die();
+}
+$stats = $da->get_board_stats($board_id);
+$board['rules'] = $da->get_board_rules($board_id);
+
+$rows = $da->get_discussions($board_id, 1);
+if ($rows === null) {
+  unset($error);
+  include("error.php");
+  unset($da);
+  die();
+}
+
+unset($da);
 ?>
+
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
 	<meta charset="utf-8">
-  <title>wheel - <?php echo $board->get_title(); ?></title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico">
+  <title>wheel - Archive - <?php echo $board['title']; ?></title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="wrap-all">
@@ -51,25 +64,21 @@ if ($board === NULL) {
 			<div id="user-panel">
 				<div class="row">
           <ul class="list float-left">
-            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/">FAQ</a></li>
-            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/">Help</a></li>
-            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/">Rules</a></li>
+            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/faq.php">FAQ</a></li>
+            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/faq.php#about">About</a></li>
+            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/rules.php">Rules</a></li>
           </ul>
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_anon()) { // anon
-              echo "<li><i class=\"fas fa-user-plus\"></i> <a href=\"/register.php\">Register</a></li>"
-                .  "<li><i class=\"fas fa-sign-in-alt\"></i> <a href=\"/login.php\">Login</a></li>";
+              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
             }
             if ($user->is_registered()) { // common for registered
-              echo "<li><i class=\"fas fa-user\"></i> <a href=\"/account.php\">Account</a></li>"
-                .  "<li><i class=\"fas fa-sign-out-alt\"></i> <a href=\"/logout.php\">Logout</a></li>";
+              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
+                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
+            } else { // anon
+              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
+                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
             }
             ?>
 					</ul>
@@ -77,7 +86,7 @@ if ($board === NULL) {
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png" />
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
             <form class="input-group" action="/search.php" method="GET">
@@ -94,39 +103,36 @@ if ($board === NULL) {
         <ul class="list">
           <li><i class="fas fa-home"></i> <a href="/">Boards Index</a></li>
           <li>/</li>
-          <li><i class="fas fa-<?php echo $board->get_icon(); ?>"></i> <a href="/viewboard.php?id=<?php echo $board->get_id(); ?>">Board: <?php echo $board->get_title(); ?></a></li>
-          <li>/</li>
-          <li><i class="fas fa-<?php echo $board->get_icon(); ?>"></i> <a href="/viewarchive.php?id=<?php echo $board->get_id(); ?>">Archive</a></li>
+          <li><i class="fas fa-<?php echo $board['fa_icon']; ?>"></i> <a href="/vb.php?id=<?php echo $board['id']; ?>">Board: <?php echo $board['title']; ?></a></li>
         </ul>
 			</div> <!-- #page-title -->
-      <div id="archive-indicator">
-            You cannot reply to these discussions, they have been archived!
-      </div>
 		</div> <!-- #head -->
 		<div id="body-wrapper">
       <div class="row" id="boards-button-section">
         <ul class="list float-left">
           <?php
-          if (!$board->is_locked()) {
-						if ($user->is_admin()) {
-							echo "<li>"
-								.    "<a class=\"btn bg-pomegranate fg-white\" href=\"/lock.php?id=" . $board->get_id() . "\"><i class=\"fas fa-lock\"></i> Lock</a>"
-								.  "</li>";
+					if ($board['is_locked']) {
+						echo "<li><a class='btn bg-lock fg-white' href='faq.php#locked-board'><i class='fas fa-lock'></i> Locked</a></li>";
+					} else {
+            echo "<li>
+							      <a class='btn bg-success fg-white' href='/nd.php?id=" . $board['id'] . "'><i class='fas fa-file'></i> New Discussion</a>
+							    </li>";
+						if ($user->is_admin() || $user->is_mod_of($board['id'])) {
+							echo "<li>
+								      <a class='btn bg-pomegranate fg-white' href='/lock.php?id=" . $board['id'] . "'><i class='fas fa-lock'></i> Lock</a>
+								    </li>";
 						}
-					}
-					if ($board->is_locked()) {
-						echo "<li><a class=\"btn bg-lock fg-white\" href=\"faq.php#locked-board\"><i class=\"fas fa-lock\"></i> Locked</a></li>";
-					}
-					echo "<li>"
-						.    "<a class=\"btn bg-archive fg-white\" href=\"/viewboard.php?id=" . $board->get_id() . "\"><i class=\"fas fa-file-archive\"></i> View Discussions</a>"
-						.  "</li>";
+          }
+					echo "<li>
+						      <a class='btn bg-archive fg-white' href='/vd.php?id=" . $board['id'] . "'><i class='fas fa-file-archive'></i> View Discussions</a>
+						    </li>";
 
           ?>
         </ul>
         <div id="board-search" class="float-right">
           <form class="input-group" action="/search.php" method="GET">
             <input type="text" name="q" placeholder="Search this board..." />
-            <input type="hidden" name="id" value="<?php echo $board->get_id(); ?>" />
+            <input type="hidden" name="id" value="<?php echo $board['id']; ?>" />
             <button type="submit">
               <i class="fas fa-search"></i>
             </button>
@@ -145,7 +151,7 @@ if ($board === NULL) {
                     .       "<img src=\"/images/usercontents/" . $row["filename"] . "\" class=\"board-discussions\" />"
                     .    "</span>"
                     .    "<div class=\"discussions-title\">"
-                    .      "<h3><a href=\"viewdiscussion.php?id=" . $row["id"] . "\">" . $row["title"] . "</a></h3>"
+                    .      "<h3><a href=\"vd.php?id=" . $row["id"] . "\">" . $row["title"] . "</a></h3>"
                     .      "<div>" . $row["full_text"]
                     .      "</div>"
                     .    "</div>"
@@ -160,9 +166,9 @@ if ($board === NULL) {
                     .    "<div class=\"discussions-recent\">"
                     .      "<div>"
                     .        "<div class=\"text-right\">"
-                    .          "<span class=\"fg-bright\">Created:</span> " . fancy_time($row["creation_timestamp"])
+                    .          "<span class=\"fg-bright\">Created:</span> " . mysql_timestamp_to_date2($row["creation_timestamp"])
                     .        "</div>"
-                    .        "<div class=\"text-right\"><span class=\"fg-bright\">Last Reply:</span> " . ($row["last_reply_timestamp"] ? $row["last_reply_timestamp"] : "No replies yet :(") . "</div>"
+                    .        "<div class=\"text-right\"><span class=\"fg-bright\">Last Reply:</span> " . ($row["last_reply_timestamp"] ? mysql_timestamp_to_date2($row["last_reply_timestamp"]) : "no replies yet") . "</div>"
                     .      "</div>"
                     .    "</div>"
                     .  "</div>";
@@ -177,24 +183,24 @@ if ($board === NULL) {
             <div id="recent-posts-section">
               <div class="card-header">Board Rules</div>
               <div class="card-body" id="recent-posts">
-                <?php echo $board->get_rules(); ?>
+                <?php echo $board['rules']; ?>
               </div>
             </div>
 
             <div id="board-statistics-section">
-              <div class="card-header">Statistics of <?php echo $board->get_title(); ?></div>
+              <div class="card-header">Statistics of <?php echo $board['title']; ?></div>
               <div id="stats">
                 <div class="stats-item">
                   <span class="stats-left">Discussions:</span>
-                  <span class="stats-right"><?php echo $board->get_discussion_count(); ?></span>
+                  <span class="stats-right"><?php echo $stats['discussion_count']; ?></span>
                 </div>
                 <div class="stats-item">
                   <span class="stats-left">Replies:</span>
-                  <span class="stats-right"><?php echo $board->get_reply_count(); ?></span>
+                  <span class="stats-right"><?php echo $stats['reply_count']; ?></span>
                 </div>
                 <div class="stats-item">
                   <span class="stats-left">Images:</span>
-                  <span class="stats-right"><?php echo $board->get_image_count(); ?> (<?php echo $board->get_image_size(); ?>)</span>
+                  <span class="stats-right"><?php echo $stats['discussion_count']+$stats['image_count']; ?></span>
                 </div>
               </div>
 						</div>
@@ -202,8 +208,13 @@ if ($board === NULL) {
 			</div>
 		</div> <!-- #body-wrapper -->
 		<div id="foot">
-			&copy; 2018 wheel
-		</div> <!-- #footer -->
+      <ul class="list">
+        <li><a href="/privacy.php">Privacy</a></li>
+        <li><a href="/terms.php">Terms</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+      </ul>
+			<div>&copy; 2018 wheel. All rights reserved. All times are in UTC.</div>
+		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
 </body>
 </html>
