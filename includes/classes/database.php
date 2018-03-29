@@ -205,7 +205,7 @@ class data_access {
             LEFT JOIN moderations
             ON users.id = moderations.user_id
             WHERE users.email_address=?";
-    $params = array('s', $email_address);
+    $params = array('s', strtolower($email_address));
     return $this->prepared($sql, $params);
   } // function: get_user
 
@@ -302,18 +302,9 @@ class data_access {
 
   public function insert_user($email_address, $password) {
     $sql = "INSERT INTO users(email_address, password_hash) VALUES(?, ?)";
-    $result = true;
-    try {
-      $stmt = $this->mysqli->prepare($sql);
-      $stmt->bind_param("ss", $email_address, $hash);
-      $hash = md5($password);
-      $result = $stmt->execute();
-      $stmt->close();
-    } catch(Exception $e) {
-      $result = false;
-    } finally {
-      return $result;
-    }
+    $hash = md5($password);
+    $params = array('ss', strtolower($email_address), $hash);
+    return $this->prepared($sql, $params, false);
   } // insert_user
 
   private function prepared($sql, $params, $results=true) {

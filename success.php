@@ -1,18 +1,24 @@
+<?php
+if (!isset($success)) {
+  $success = 'Operation successful!';
+}
+
+?>
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
 	<meta charset="utf-8">
   <title>wheel - Success</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon/32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicon/96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon/16x16.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon/fi.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
 	<div id="wrap-all">
-  <div id="head">
+    <div id="head">
 			<div id="user-panel">
 				<div class="row">
           <ul class="list float-left">
@@ -23,9 +29,6 @@
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
               echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
             }
             if ($user->is_registered()) { // common for registered
@@ -41,11 +44,11 @@
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
+          <img id="site-logo" src="/images/logos/shishui.png">
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
 						<form class="input-group" action="index.html" method="get">
-							<input type="text" name="_query" placeholder="Search discussions..." />
+							<input type="text" name="_query" placeholder="Search discussions...">
 							<button type="submit">
 								<i class="fas fa-search"></i>
 							</button>
@@ -59,16 +62,19 @@
         </ul>
 			</div> <!-- #page-title -->
 		</div> <!-- #head -->
-		<div id="body-wrapper">
-      <div id="form-area">
-        <div id="new-discussion" class="success">
-          <?php echo $success; ?>
-        </div>
+		<div id='body-wrapper'>
+      <div id='form-area' class='success'>
+        <?php echo $success; ?>
       </div>
 		</div> <!-- #body-wrapper -->
 		<div id="foot">
-			&copy; 2018 wheel
-		</div> <!-- #footer -->
+      <ul class="list">
+        <li><a href="/privacy.php">Privacy</a></li>
+        <li><a href="/terms.php">Terms</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+      </ul>
+			<div>&copy; 2018 wheel. All rights reserved. All times are in UTC.</div>
+		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
 </body>
 </html>

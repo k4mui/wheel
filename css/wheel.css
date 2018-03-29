@@ -14,7 +14,7 @@ ol{margin: 10px 20px;}
 #boards-section, #replies-section{margin: 6px;}
 #board-statistics-section{margin-bottom:6px}
 #errors{background-color:#ffebec;border:1px solid #eedadb;color:#ab4424;margin-bottom: 12px;padding: 10px;}
-.error{background-color:#ffebec;border:1px solid #eedadb;color:#ab4424;}
+#form-area.error{background-color:#ffebec;border:1px solid #eedadb;color:#ab4424;}
 #foot>ul>li>a{color:#90CAF9;}
 #home-link{margin-left:8px;}
 #new-discussion>form>input[type=text]{padding:8px;width:100%;}
@@ -23,7 +23,7 @@ ol{margin: 10px 20px;}
 #site-nav{color:#e0eaff;background-color:#367fa9;line-height:64px;min-height:64px;box-shadow:0 6px 6px 0 rgba(0, 0, 0, 0.24)}
 #site-nav::after{clear:both;content:"";display:block}
 #success{background-color:#ebffec;border:1px solid #daeedb;color:#44ab24;margin-bottom: 12px;padding: 10px;}
-.success{background-color:#ebffec;border:1px solid #daeedb;color:#44ab24;}
+#form-area.success{background-color:#ebffec;border:1px solid #daeedb;color:#44ab24;}
 div#boards-button-section{line-height:30px;min-height:30px;margin:0 6px 10px 6px;}
 div#boards-button-section>ul>li>a{color:white;display:block;height:100%;text-decoration:none;width:100%;}
 div#boards-button-section>ul>li>a:hover{text-decoration:none}
@@ -159,4 +159,4 @@ hr {
   color: #123455;
   background-color: #123455;
   border: none;
-  }
+}

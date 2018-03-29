@@ -44,11 +44,11 @@ if (!isset($error)) {
 			</div> <!-- #user-panel -->
 			<div id="site-nav">
 				<div class="row">
-          <img id="site-logo" src="/images/logos/shishui.png" />
+          <img id="site-logo" src="/images/logos/shishui.png">
           <span id="site-title">wheel</span>
 					<div id="site-search" class="float-right">
 						<form class="input-group" action="index.html" method="get">
-							<input type="text" name="_query" placeholder="Search discussions..." />
+							<input type="text" name="_query" placeholder="Search discussions...">
 							<button type="submit">
 								<i class="fas fa-search"></i>
 							</button>
@@ -62,16 +62,19 @@ if (!isset($error)) {
         </ul>
 			</div> <!-- #page-title -->
 		</div> <!-- #head -->
-		<div id="body-wrapper">
-      <div id="form-area">
-        <div id="new-discussion" class="error">
-          <?php echo $error; ?>
-        </div>
+		<div id='body-wrapper'>
+      <div id='form-area' class='error'>
+        <?php echo $error; ?>
       </div>
 		</div> <!-- #body-wrapper -->
 		<div id="foot">
-			&copy; 2018 wheel
-		</div> <!-- #footer -->
+      <ul class="list">
+        <li><a href="/privacy.php">Privacy</a></li>
+        <li><a href="/terms.php">Terms</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+      </ul>
+			<div>&copy; 2018 wheel. All rights reserved. All times are in UTC.</div>
+		</div> <!-- #foot -->
 	</div> <!-- #wrap-all -->
 </body>
 </html>
