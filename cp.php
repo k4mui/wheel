@@ -4,10 +4,31 @@ require "$root/includes/init.php";
 require "$root/includes/classes/database.php";
 require "$root/includes/formatting.php";
 
+print_r($_POST);
+
+$controls = array('users', 'boards');
+$actions = array(
+  'boards' => array('Title', 'Is Locked', 'Icon'),
+  'users' => array('Email', 'Role','Account Status', 'Joined On', 'Moderation')
+);
+$error = null;
+if (isset($_GET['c'])) {
+  $control = $_GET['c'];
+  if (!in_array($control, $controls)) {
+    $error = 'Invalid control selection.';
+  }
+} else {
+  $control = 'users';
+}
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
-  $error = "Invalid request!";
-  include("error.php");
+  $error = 'Invalid request!';
+} else if (!$user->is_admin()) {
+  $error = 'You don\'t have enough privilige to view this page.';
+}
+
+if ($error) {
+  include('error.php');
   die();
 }
 
@@ -16,14 +37,10 @@ if ($da === null) {
   include("error.php");
   die();
 }
-
-$stats = $da->get_site_stats();
-$rows = $da->get_boards_data();
-$discussions = $da->get_recent_discussions();
-if ($rows == null || $stats == null) {
-  include("error.php");
-  unset($da);
-  die();
+if ($control==='users') {
+  $rows = $da->get_users_cp();
+} else if ($control==='boards') {
+  $rows = $da->get_boards_cp();
 }
 
 unset($da);
@@ -53,16 +70,9 @@ unset($da);
           </ul>
 					<ul class="list float-right">
 						<?php
-            if ($user->is_admin()) { //admin
-              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
-            }
-            if ($user->is_registered()) { // common for registered
-              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
-                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
-            } else { // anon
-              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
-                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
-            }
+            echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>
+                  <li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
+                  <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
             ?>
 					</ul>
 				</div> <!-- .row -->
@@ -92,81 +102,49 @@ unset($da);
 			<div class="row">
         <div id="body-left" class="float-left">
           <div id="boards-section">
-            <div class="card-header">Boards</div>
-            <?php
-            foreach ($rows as $id => $row) {
-              echo '<div class="boards-item">
-                      <span class="boards-icon">
-                        <i class="fas fa-' . $row['fa_icon'] . '"></i>
-                      </span>
-                      <div class="boards-title">
-                        <h3><a href="vb.php?id=' . $row['id'] . '">' . $row['title'] . '</a></h3>
-                        <div class="boards-stats">
-                          <span class="fg-bright">Discussions:</span> <span class="fg-black">' . $row['discussion_count'] . '</span> ·
-                          <span class="fg-bright">Replies:</span> <span class="fg-black">' . $row['reply_count'] . '</span> ·
-                          <span class="fg-bright">Images:</span> <span class="fg-black">' . ($row['image_count_r']+$row['discussion_count']) . '</span>
-                        </div> <!-- .boards-stats -->
-                      </div> <!-- .boards-title -->
-                      <div class="boards-recent">
-                        <img class="recent-img" src="/images/usercontents/' . ($row['image_filename'] ?  $row['image_filename'] : '200x200.png') . '" alt="x"/>
-                        <div class="boards-recent-info">
-                          <div class="boards-recent-title">
-                            <span class="fg-bright">Recent:</span> ' . ($row['last_discussion_title'] ? '<a href="/vd.php?id="' . $row['last_discussion_id'] . '">' . $row['last_discussion_title'] . '</a>' : 'No discussion yet') . '
-                          </div>
-                          <div>
-                            <span class="fg-bright">Posted:</span> ' . ($row['last_discussion_timestamp'] ? mysql_timestamp_to_date($row['last_discussion_timestamp']) : 'No discussion yet') . '
-                          </div>
-                        </div>
-                      </div>
-                    </div> <!-- .boards-item -->';
-            }
-            ?>
+            <div class="card-header"><?php echo ucfirst($control); ?></div>
+            <div class='regular-body'>
+              <form action='' method='post'>
+                <table class='table'>
+                  <tbody>
+                    <tr>
+                      <th>Selection</th>
+                      <th>Id</th>
+                      <?php
+                        foreach($actions[$control] as $k=>$v) {
+                          echo "<th>{$v}</th>";
+                        }
+                      ?>
+                    </tr>
+                    <?php
+                    foreach($rows as $k=>$v) {
+                      echo "<tr>
+                              <td><input type='radio' name='id' value='{$v['id']}'></td>
+                              <td>{$v['id']}</td>";
+                      foreach ($v as $x=>$y) {
+                        if ($x!=='id') {
+                          echo "<td>{$y}</td>";
+                        }
+                      }
+                        echo "</tr>";
+                    }
+                    ?>
+                  </tbody>
+                </table>
+                <input class='button bg-pomegranate' type='submit' name='submit' value='Remove'>
+                <input class='button bg-magenta-purple' type='submit' name='submit' value='Edit'>
+              </form>
+            </div>
           </div> <!-- #boards-section -->
         </div>
         <div id="body-right">
           <div id="recent-posts-section">
-            <div class="card-header">Recent Discussions</div>
+            <div class="card-header">Controls</div>
             <div id="recent-posts">
-            <?php
-            if ($discussions) {
-              foreach($discussions as $id => $discussion) {
-                echo '<div class="recent-item">
-                        <img class="top" src="/images/usercontents/' . $discussion['filename'] . '">
-                        <div class="recent-info">
-                          <div class="boards-recent-title">
-                            <a href="vd.php?id=' . $discussion['id'] . '">' . $discussion['title'] . '</a>
-                          </div>
-                          <div class="boards-stats">' . mysql_timestamp_to_date($discussion['creation_timestamp']) .'
-                          </div> <!-- .boards-stats -->
-                          <div class="boards-stats">
-                            <a href="/vb.php?id=' . $discussion['board_id'] . '">' . $discussion['board_title'] . '</a>
-                          </div>
-                        </div>
-                      </div> <!-- .recent-item -->';
-              }
-            } else {
-              echo '<div class="recent-item">No discussions yet</div>';
-            }
-            ?>
+              <a href="/cp.php?c=users">Users</a>
+              <a href="/cp.php?c=boards">Boards</a>
             </div>
           </div> <!-- #recent-posts-section -->
-          <div id="statistics-section">
-            <div class="card-header">Site Statistics</div>
-            <div id="stats">
-              <div class="stats-item">
-                <span class="stats-left">Discussions:</span>
-                <span class="stats-right"><?php echo $stats['discussion_count']; ?></span>
-              </div>
-              <div class="stats-item">
-                <span class="stats-left">Replies:</span>
-                <span class="stats-right"><?php echo $stats['reply_count']; ?></span>
-              </div>
-              <div class="stats-item">
-                <span class="stats-left">Images:</span>
-                <span class="stats-right"><?php echo $stats['image_count']; ?> (<?php echo human_readable_filesize((int)$stats['image_size']); ?>)</span>
-              </div>
-            </div>
-          </div> <!-- #statistics-section -->
         </div>
 			</div>
 		</div> <!-- #body-wrapper -->

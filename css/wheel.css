@@ -42,6 +42,8 @@ div#nav-links>a{font-size:14px;font-weight:bold;line-height:40px;margin-left:8px
 div#page-title{margin:24px 0px 0px 0px;font-size:14px;padding:0px 8px;}
 div#page-title>ul>li>i{color:#999999}
 div#recent-posts{margin-bottom:20px;}
+div#recent-posts>a{text-decoration:none;font-weight:bold;border-bottom: 1px solid #dadada;padding: 10px 8px 10px 8px;display: block;cursor: pointer;background-color: #fcfcff;}
+div#recent-posts>a:hover{background-color: #f4f4f5;}
 div#site-search{line-height:64px;margin-right:8px;min-height:64px}
 div#site-search>form{border:1px solid#e0eaff;margin-top:13px;min-height:38px}
 div#site-search>form>input{color:#e0eaff;font-size:14px;min-height:38px;}
@@ -69,7 +71,7 @@ div.acc-item{border-bottom: 1px solid #aaaaaa;margin: 6px 0 6px 10px;padding: 6p
 .account-form>input[type=submit]:disabled{background-color:#d4d4d4;cursor: default;}
 .breakword{word-wrap:break-word}
 .btn{padding:2px 8px;}
-
+.button{padding: 10px;cursor: pointer;margin:8px;}
 .discussions-title>h3,.discussions-title>div{overflow:hidden;text-overflow: ellipsis;white-space: nowrap;}
 .faq-answers>div{border: 1px solid #999999;padding: 4px;}
 ul.faq{margin-left: 12px;}
@@ -101,11 +103,17 @@ div.stats-item{overflow:hidden}
 i.fa-code{color:#b71540}
 img.board-discussions{border-radius: 24px; width:48px; height:48px;}
 img.recent-img{float:left;height:48px;vertical-align:text-top;width:48px;}
+.regular-body{background-color: #FCFBFF;}
 span.boards-icon{display:block;float:left;font-size:30px;height:48px;text-align:center;width:48px}
 span.boards-icon>i{color:#aaaaaa;}
 span.bold{font-weight:bold}
 span.stats-left{float:left}
 span.stats-right{float:right;text-align:right}
+.table{width:100%;border:0;margin: 0;padding: 0;border-collapse: collapse;}
+.table>tbody>tr>td,th{padding:8px;text-align:left;}
+.table>tbody>tr{border-bottom:1px solid #dadada;}
+.table>tbody>tr>td:not(:first-child):not(:last-child){border:1px solid #dadada;}
+th:not(:first-child):not(:last-child){border-right:1px solid #dadada;border-left:1px solid #dadada;border-bottom:1px solid #dadada;}
 ul.list{list-style:none}
 ul.list>li{display:inline-block;list-style-type:none;padding-right:8px;}
 

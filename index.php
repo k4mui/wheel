@@ -65,7 +65,7 @@ unset($da);
 					<ul class="list float-right">
 						<?php
             if ($user->is_admin()) { //admin
-              echo "<li><i class='fas fa-user-secret'></i> <a href='inbox.php'>Admin Panel</a></li>";
+              echo "<li><i class='fas fa-user-secret'></i> <a href='/cp.php'>Control Panel</a></li>";
             }
             if ($user->is_registered()) { // common for registered
               echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>

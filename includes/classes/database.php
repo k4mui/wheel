@@ -45,6 +45,11 @@ class data_access {
     return $this->select($sql);
   } // get_boards
 
+  public function get_boards_cp() {
+    $sql = 'SELECT * FROM boards';
+    return $this->select($sql);
+  } // get_boards
+
   public function get_board_rules($board_id) {
     $sql = "SELECT full_text FROM rules WHERE board_id = $board_id";
     $result = $this->select($sql);
@@ -207,6 +212,19 @@ class data_access {
             WHERE users.email_address=?";
     $params = array('s', strtolower($email_address));
     return $this->prepared($sql, $params);
+  } // function: get_user
+
+  public function get_users_cp() {
+    $sql = "SELECT users.id,
+                   users.email_address,
+                   users.role,
+                   users.account_status,
+                   users.registration_timestamp,
+                   moderations.board_id
+            FROM users
+            LEFT JOIN moderations
+            ON users.id = moderations.user_id";
+    return $this->select($sql);
   } // function: get_user
 
   public function insert_discussion($title,
