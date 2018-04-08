@@ -1,0 +1,7 @@
+[08-Apr-2018 18:42:51 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'user_id' cannot be null in /home/obi/dev/localhost/wheel/includes/classes/database.php:369
+Stack trace:
+#0 /home/obi/dev/localhost/wheel/includes/classes/database.php(369): mysqli_stmt->execute()
+#1 /home/obi/dev/localhost/wheel/includes/classes/database.php(477): data_access->prepared('INSERT INTO pos...', Array, false)
+#2 /home/obi/dev/localhost/wheel/view-discussion.php(35): data_access->update_post_view(2, NULL, 'BD', 'Asia/Dhaka', 'Mozilla/5.0 (X1...', 3230465757)
+#3 {main}
+  thrown in /home/obi/dev/localhost/wheel/includes/classes/database.php on line 369

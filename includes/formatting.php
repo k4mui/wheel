@@ -18,4 +18,35 @@ function human_readable_filesize($bytes) {
 
   return round($bytes/pow(1024, $e), 2).$s[$e];
 }
+
+function time_elapsed_string($datetime, $full = false) {
+  $now = new DateTime;
+  $now->setTimezone(new DateTimeZone($_SESSION['tz']));
+  $ago = new DateTime($datetime);
+  $ago->setTimezone(new DateTimeZone($_SESSION['tz']));
+  $diff = $now->diff($ago);
+
+  $diff->w = floor($diff->d / 7);
+  $diff->d -= $diff->w * 7;
+
+  $string = array(
+      'y' => 'year',
+      'm' => 'month',
+      'w' => 'week',
+      'd' => 'day',
+      'h' => 'hour',
+      'i' => 'minute',
+      's' => 'second',
+  );
+  foreach ($string as $k => &$v) {
+      if ($diff->$k) {
+          $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+      } else {
+          unset($string[$k]);
+      }
+  }
+
+  if (!$full) $string = array_slice($string, 0, 1);
+  return $string ? implode(', ', $string) . ' ago' : 'just now';
+}
 ?>

@@ -75,3 +75,68 @@ function check_reg_form() {
         enable_button('reg_form');
     }
 }
+function check_username() {
+    un = document.form.un.value;
+    unl = un.length;
+    if (unl < 3) {
+        document._errors.u = 'Username too short.';
+    } else if (unl > 32) {
+        document._errors.u = 'Username too long.';
+    } else {
+        document._errors.u = false;
+    }
+    process_errors();
+}
+function check_email() {
+    ue = document.form.ue.value;
+    uel = ue.length;
+    if (uel < 3) {
+        document._errors.e = 'Email too short.';
+    } else if (uel > 254) {
+        document._errors.e = 'Email too long.';
+    } else {
+        document._errors.e = false;
+    }
+    process_errors();
+}
+function check_password() {
+    us = document.form.us.value;
+    usl = us.length;
+    if (usl < 8) {
+        document._errors.p = 'Password too short.';
+    } else {
+        document._errors.p = false;
+    }
+    process_errors();
+}
+function check_confirm_password() {
+    cus = document.form.cus.value;
+    us = document.form.us.value;
+    if (cus!=us) {
+        document._errors.cp = 'Passwords do not match.';
+    } else {
+        document._errors.cp = false;
+    }
+    process_errors();
+}
+function CN(cn) {
+    return document.getElementsByClassName(cn);
+}
+function process_errors() {
+    var error_str = '';
+    for(var error in document._errors) {
+        if (document._errors[error] && typeof(document._errors[error]) !== 'boolean') {
+            if (error_str.length==0) {
+                error_str = "<div class='card card-error'><div class='card-body'>";
+            }
+            error_str += "<div class='list'>"+ document._errors[error] +"</div>";
+        }
+    }
+    if (error_str.length!=0) {
+        error_str += '</div></div>';
+        ID('submit-button').disabled = true;
+    } else {
+        ID('submit-button').disabled = false;
+    }
+    ID('errors-section').innerHTML = error_str;
+}

@@ -3,6 +3,10 @@ require_once(__DIR__."/board.php");
 require_once(__DIR__."/discussion.php");
 require_once(__DIR__."/user.php");
 
+$dbname = 'wheelim';
+$dbpwd = 'qwertY33';
+$dbserver = '127.0.0.1';
+$dbuser = 'root';
 
 class data_access {
   private $mysqli;
@@ -65,6 +69,14 @@ class data_access {
     return $stats;
   } // get_board_stats
 
+  public function get_categories($limit=null) {
+    $sql = 'SELECT * FROM categories ';
+    if ($limit) {
+      $sql .= "LIMIT $limit";
+    }
+    return $this->select($sql);
+  }
+
   public function get_discussions($board_id, $archive=0) {
     $sql = "SELECT d.id,
                   d.title,
@@ -94,27 +106,37 @@ class data_access {
     return $this->prepared($sql, $params);
   } // function: get_discussions
 
-  public function get_discussion($discussion_id) {
-    $sql = "SELECT d.author_id,
-                   d.archived,
-                   d.id,
-                   d.title,
-                   d.creation_timestamp,
-                   d.full_text,
-                   d.board_id,
-                   i.filename,
-                   b.fa_icon,
-                   b.title AS board_title
-            FROM discussions AS d,
-                 images AS i,
-                 boards AS b
-            WHERE d.id = ? AND
-                  d.image_id = i.id AND
-                  b.id = d.board_id";
-    $params = array('i', $discussion_id);
+  public function get_discussion($did) {
+    $sql = "SELECT attachments.attachment_name,
+                   categories.category_id,
+                   categories.category_name,
+                   posts.author_id,
+                   posts.post_title,
+                   posts.post_text,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            INNER JOIN categories
+            ON posts.category_id=categories.category_id
+            LEFT JOIN attachments
+            ON attachments.attachment_id = posts.attachment_id
+            WHERE posts.parent_post_id IS NULL AND
+                  posts.post_id=?";
+    $params = array('i', $did);
     $result = $this->prepared($sql, $params);
     return count($result) ? $result[0] : null;
   } // function: get_discussion
+
+  public function get_posts($page=null) {
+    $sql = "SELECT posts.post_title,
+                   posts.post_id,
+                   attachments.attachment_name
+            FROM posts
+            LEFT JOIN attachments
+            ON attachments.attachment_id=posts.attachment_id
+            WHERE posts.parent_post_id IS NULL";
+    return $this->select($sql);
+  } // function: get_posts
 
   public function get_recent_discussion($board_id) {
     $sql = "SELECT discussions.id,
@@ -150,33 +172,18 @@ class data_access {
     return $this->select($sql);
   } // function: get_recent_discussions
 
-  public function get_replies($discussion_id) {
-    $rows = null;
-    try {
-      $sql = "SELECT r.id,
-                     r.full_text,
-                     r.creation_timestamp,
-                     i.filename,
-                     r.author_id
-              FROM replies AS r
-              LEFT JOIN images AS i
-              ON r.image_id = i.id
-              WHERE r.discussion_id = ?";
-      $stmt = $this->mysqli->prepare($sql);
-      $stmt->bind_param('i', $discussion_id);
-      $stmt->execute();
-      $result = $stmt->get_result();
-      $rows = array();
-      while($row = $result->fetch_assoc()) {
-        $rows[] = $row;
-      }
-      $result->free();
-      $stmt->close();
-    } catch(Exception $e) {
-      error_log('[DBError] '.$e->getMessage());
-    } finally {
-      return $rows;
-    }
+  public function get_replies($did) {
+    $sql = "SELECT attachments.attachment_name,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            LEFT JOIN attachments
+            ON posts.attachment_id = attachments.attachment_id
+            WHERE posts.parent_post_id = ?";
+    $params = array('i', $did);
+    return $this->prepared($sql, $params);
   } // function: get_replies
 
   public function get_site_stats() {
@@ -187,6 +194,17 @@ class data_access {
     );
     return $stats;
   } // function: get_site_stats
+
+  public function get_tags($count) {
+    $sql = "SELECT * FROM post_tags LIMIT $count";
+    return $this->select($sql);
+  }
+
+  public function get_tags_by_post_id($pid) {
+    $sql = "SELECT * FROM post_tags WHERE post_id=?";
+    $params = array('i', $pid);
+    return $this->prepared($sql, $params);
+  } // get_tags_by_post_id
 
   private function count_all($table_name, $condition=null) {
     $sql = "SELECT COUNT(*) AS c FROM $table_name $condition";
@@ -232,11 +250,7 @@ class data_access {
                                     $image_id,
                                     $user_id,
                                     $board_id) {
-    $sql = 'INSERT INTO discussions (title,
-                                     full_text,
-                                     author_id,
-                                     image_id,
-                                     board_id)
+    $sql = 'INSERT INTO posts (post_title, post_text, attachment_id, category_id, author_id)
             VALUES(?, ?, ?, ?, ?)';
     $params = array(
       'ssiii',
@@ -248,6 +262,23 @@ class data_access {
     );
     return $this->prepared($sql, $params, false);
   } // insert_discussion
+
+  public function insert_post($post_title, $post_text, $parent_post_id, $author_id, $attachement_id, $category_id) {
+    $sql = 'INSERT INTO posts (post_title, post_text, parent_post_id, attachment_id, category_id, author_id)
+            VALUES(?, ?, ?, ?, ?, ?)';
+    $params = array('ssiiii',$post_title,$post_text,$parent_post_id,$attachement_id,$category_id,$author_id);
+    return $this->prepared($sql, $params, false);
+  } // insert_discussion
+
+  public function insert_tags($post_id, $tags) {
+    $sql = 'INSERT INTO post_tags VALUES (?, ?)';
+    $params = array('is', $post_id, $tags[0]);
+    foreach($tags as $tag) {
+      $params[2] = $tag;
+      $this->prepared($sql, $params, false);
+    }
+    return true;
+  }
 
   private function get_extension($mime) {
     switch($mime) {
@@ -293,7 +324,7 @@ class data_access {
       }
     }
 
-    $sql = 'INSERT INTO images(filename, size) VALUES (?, ?)';
+    $sql = 'INSERT INTO attachments(attachment_name, attachment_size) VALUES (?, ?)';
     $params = array('si', $filename, $image['size']);
 
     return $this->prepared($sql, $params, false);
@@ -382,6 +413,68 @@ class data_access {
     }
     return $rows;
   } // select
-} // class: data_access
 
+
+
+  public function check_user_data(& $ud_city, & $ud_timezone, & $ud_country_code) {
+    $sql = "SELECT city_id FROM cities WHERE city_name=?";
+    $params = array('s', $ud_city);
+    $result = $this->prepared($sql, $params);
+    if (!$result) {
+      $ud_city = null;
+    }
+    $sql = "SELECT timezone_id FROM timezones WHERE timezone_name=?";
+    $params = array('s', $ud_timezone);
+    $result = $this->prepared($sql, $params);
+    if (!$result) {
+      $ud_timezone = null;
+    }
+  }
+
+
+
+  public function get_new_session_id() {
+    $user_info = get_client_info();
+    $city = $user_info['region']['city'];
+    $country = $user_info['country']['alpha-2'];
+    $timezone = $user_info['timezone']['name'];
+    echo "$city - $country - $timezone";
+    $token = md5(openssl_random_pseudo_bytes(64));
+    $sql = "INSERT INTO user_sessions()";
+  }
+
+  public function insert_country($cc, $cn, $co) {
+    if ($cn && $cc && $co) {
+      $sql = 'INSERT INTO countries (country_code, country_name, continent_code)
+              VALUES (?, ?, ?)
+              ON DUPLICATE KEY
+              UPDATE country_code=country_code';
+      $params = array('sss', $cc, $cn, $co);
+      $this->prepared($sql, $params, false);
+    }
+  }
+
+  public function is_username_available($un) {
+    $sql = 'SELECT user_id FROM users WHERE user_name=?';
+    $params = array('s', $un);
+    return count($this->prepared($sql, $params))===0;
+  }
+  public function _load($f) {
+    $sql = "LOAD DATA LOCAL INFILE '/home/obi/Downloads/sp/$f'
+            INTO TABLE ip2location_db11
+            FIELDS TERMINATED BY ','
+            ENCLOSED BY '\"'
+            LINES TERMINATED BY '\\r\\n'
+            IGNORE 0 LINES";
+    return $this->mysqli->query($sql);
+  }
+
+  public function update_post_view($p, $u, $cc, $t, $ua, $ip) {
+    $sql = 'INSERT INTO post_views VALUES (?, ?, CURDATE(), ?, IFNULL(?, 1), (SELECT timezone_id FROM timezones WHERE timezone_name=?), ?, ?)
+            ON DUPLICATE KEY
+              UPDATE view_count=view_count+1';
+    $params = array('iisisis', $p, 1, $cc, $u, $t, $ip, $ua);
+    $this->prepared($sql, $params, false);
+  }
+} // class: data_access
 ?>

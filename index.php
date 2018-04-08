@@ -1,9 +1,8 @@
 <?php
 $root = dirname(__FILE__);
 require "$root/includes/init.php";
-require "$root/includes/classes/database.php";
-require "$root/includes/formatting.php";
-
+//require "$root/includes/classes/database.php";
+//require "$root/includes/formatting.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
   $error = "Invalid request!";
@@ -12,32 +11,10 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 }
 
 $da = data_access::get_instance();
-if ($da === null) {
-  include("error.php");
-  die();
-}
+$tags = $da->get_tags(24);
+$categories = $da->get_categories(12);
+$posts = $da->get_posts();
 
-$stats = $da->get_site_stats();
-$rows = $da->get_boards();
-
-foreach($rows as $k => $v) {
-  $rows[$k]['stats'] = $da->get_board_stats($rows[$k]['id']);
-  $rows[$k]['recent'] = $da->get_recent_discussion($rows[$k]['id']);
-  if (!$rows[$k]['stats']) {
-    include('error.php');
-    unset($da);
-    die();
-  }
-}
-
-$discussions = $da->get_recent_discussions();
-if ($rows == null || $stats == null) {
-  include("error.php");
-  unset($da);
-  die();
-}
-
-unset($da);
 ?>
 
 <!DOCTYPE html>
@@ -50,145 +27,95 @@ unset($da);
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
   <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
-	<link href="/css/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+	<link href="/css/wheel_v2.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
-	<div id="wrap-all">
-		<div id="head">
-			<div id="user-panel">
-				<div class="row">
-          <ul class="list float-left">
-            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/faq.php">FAQ</a></li>
-            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/faq.php#about">About</a></li>
-            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/rules.php">Rules</a></li>
-          </ul>
-					<ul class="list float-right">
-						<?php
-            if ($user->is_admin()) { //admin
-              echo "<li><i class='fas fa-user-secret'></i> <a href='/cp.php'>Control Panel</a></li>";
-            }
-            if ($user->is_registered()) { // common for registered
-              echo "<li><i class='fas fa-user'></i> <a href='/account.php'>Account</a></li>
-                    <li><i class='fas fa-sign-out-alt'></i> <a href='/logout.php'>Logout</a></li>";
-            } else { // anon
-              echo "<li><i class='fas fa-user-plus'></i> <a href='/register.php'>Register</a></li>
-                    <li><i class='fas fa-sign-in-alt'></i> <a href='/login.php'>Login</a></li>";
-            }
-            ?>
-					</ul>
-				</div> <!-- .row -->
-			</div> <!-- #user-panel -->
-			<div id="site-nav">
-				<div class="row">
-          <img id="site-logo" src="/images/logos/shishui.png">
-          <span id="site-title">wheel</span>
-					<div id="site-search" class="float-right">
-						<form class="input-group" action="/search.php" method="GET">
-              <input type="text" name="q" placeholder="Search discussions...">
-              <input type="hidden" name="id" value="-1">
-							<button type="submit">
-								<i class="fas fa-search"></i>
-							</button>
-						</form>
-					</div>
-				</div> <!-- .row -->
-			</div> <!-- #site-nav -->
-			<div id="page-title">
-        <ul class="list">
-          <li><i class="fas fa-home"></i> <a href="/">Boards Index</a></li>
-        </ul>
-			</div> <!-- #page-title -->
-		</div> <!-- #head -->
-		<div id="body-wrapper">
-			<div class="row">
-        <div id="body-left" class="float-left">
-          <div id="boards-section">
-            <div class="card-header">Boards</div>
-            <?php
-            foreach ($rows as $id => $row) {
-              echo '<div class="boards-item">
-                      <span class="boards-icon">
-                        <i class="fas fa-' . $row['fa_icon'] . '"></i>
-                      </span>
-                      <div class="boards-title">
-                        <h3><a href="vb.php?id=' . $row['id'] . '">' . $row['title'] . '</a></h3>
-                        <div class="boards-stats">
-                          <span class="fg-bright">Discussions:</span> <span class="fg-black">' . $row['stats']['discussion_count'] . '</span> ·
-                          <span class="fg-bright">Replies:</span> <span class="fg-black">' . $row['stats']['reply_count'] . '</span> ·
-                          <span class="fg-bright">Images:</span> <span class="fg-black">' . ($row['stats']['image_count']+$row['stats']['discussion_count']) . '</span>
-                        </div> <!-- .boards-stats -->
-                      </div> <!-- .boards-title -->
-                      <div class="boards-recent">
-                        <img class="recent-img" src="/images/usercontents/' . (isset($row['recent']['filename']) && $row['recent']['filename'] ?  $row['recent']['filename'] : '200x200.png') . '" alt="x">
-                        <div class="boards-recent-info">
-                          <div class="boards-recent-title">
-                            <span class="fg-bright">Recent:</span> ' . (isset($row['recent']['title']) ? '<a href="/vd.php?id=' . $row['recent']['id'] . '">' . $row['recent']['title'] . '</a>' : 'No discussion yet') . '
-                          </div>
-                          <div>
-                            <span class="fg-bright">Posted:</span> ' . (isset($row['recent']['creation_timestamp']) && $row['recent']['creation_timestamp'] ? mysql_timestamp_to_date($row['recent']['creation_timestamp']) : 'No discussion yet') . '
-                          </div>
-                        </div>
-                      </div>
-                    </div> <!-- .boards-item -->';
-            }
-            ?>
-          </div> <!-- #boards-section -->
+<div class='site-header'>
+    <div class='inner'>
+      <div class='grid'>
+        <div class='site-logo'>
+          <a href='/'></a>
+        </div> <!-- .site-logo -->
+        <div class='site-search'>
+          <form action='/search.php' method='get'>
+            <input type='text' name='q' placeholder='Search'>
+            <button type='submit'>
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
         </div>
-        <div id="body-right">
-          <div id="recent-posts-section">
-            <div class="card-header">Recent Discussions</div>
-            <div id="recent-posts">
+        <div class='nav-menu'>
+          <ul class='list list-inline'>
+            <li><a href='new-discussion.php'>New Discussion</a></li>
             <?php
-            if ($discussions) {
-              foreach($discussions as $id => $discussion) {
-                echo '<div class="recent-item">
-                        <img class="top" src="/images/usercontents/' . $discussion['filename'] . '">
-                        <div class="recent-info">
-                          <div class="boards-recent-title">
-                            <a href="vd.php?id=' . $discussion['id'] . '">' . $discussion['title'] . '</a>
-                          </div>
-                          <div class="boards-stats">' . mysql_timestamp_to_date($discussion['creation_timestamp']) .'
-                          </div> <!-- .boards-stats -->
-                          <div class="boards-stats">
-                            <a href="/vb.php?id=' . $discussion['board_id'] . '">' . $discussion['board_title'] . '</a>
-                          </div>
-                        </div>
-                      </div> <!-- .recent-item -->';
-              }
+            if (!isset($_SESSION['uid'])) {
+              echo "<li><a href='/register.php'>Register</a></li>
+                    <li><a href='/login.php'>Login</a></li>";
             } else {
-              echo '<div class="recent-item">No discussions yet</div>';
+              echo "<li><a href='/account.php'>Account</a></li>
+                    <li><a href='/logout.php'>Logout</a></li>";
             }
             ?>
-            </div>
-          </div> <!-- #recent-posts-section -->
-          <div id="statistics-section">
-            <div class="card-header">Site Statistics</div>
-            <div id="stats">
-              <div class="stats-item">
-                <span class="stats-left">Discussions:</span>
-                <span class="stats-right"><?php echo $stats['discussion_count']; ?></span>
-              </div>
-              <div class="stats-item">
-                <span class="stats-left">Replies:</span>
-                <span class="stats-right"><?php echo $stats['reply_count']; ?></span>
-              </div>
-              <div class="stats-item">
-                <span class="stats-left">Images:</span>
-                <span class="stats-right"><?php echo $stats['image_count']; ?></span>
-              </div>
-            </div>
-          </div> <!-- #statistics-section -->
+          </ul>
         </div>
-			</div>
-		</div> <!-- #body-wrapper -->
-		<div id="foot">
-      <ul class="list">
-        <li><a href="/privacy.php">Privacy</a></li>
-        <li><a href="/terms.php">Terms</a></li>
-        <li><a href="/contact.php">Contact</a></li>
-      </ul>
-			<div>&copy; 2018 wheel. All rights reserved. All times are in UTC.</div>
-		</div> <!-- #foot -->
-	</div> <!-- #wrap-all -->
+      </div> <!-- .grid -->
+    </div> <!-- .inner -->
+  </div> <!-- .site-header -->
+  <div class='site-content'>
+    <div class='site-main-grid'>
+      <div class='col-left'>
+        <div class='block-title'>Feed</div>
+        <a class='feed-link selected' href=''>Top Discussions</a>
+        <a class='feed-link' href=''>Latest Discussions</a>
+      </div>
+      <div class='col-middle'>
+        <div class='block-title'>Discussions for you</div>
+        <?php
+          foreach($posts as $post) {
+            echo "<div class='card-post-list'>
+                    <div class='post-list-title'>
+                      <a href='view-discussion.php?id={$post['post_id']}'>
+                        <span>{$post['post_title']}</span>
+                      </a>
+                    </div>
+                    <div class='text-mute'>Submitted 21 hours ago · <span class='text-bold'>No replies yet</span></div>
+                    <div class='post-list-footer'>
+                      <span class='badge badge-cat'>Category: <a class='text-bold' href=''>Books</a></span>
+                      <a class='badge badge-tag' href=''>book</a>
+                    </div>
+                  </div>";
+          }
+          ?>
+      </div>
+      <div class='col-right'>
+        <div class='card'>
+          <div class='card-header'>Categories</div>
+          <?php
+          foreach($categories as $cat) {
+            echo "<a class='category' href='/view-category.php?c={$cat['category_id']}'>{$cat['category_name']}</a>";
+          }
+          ?>
+          <a class='category' href='/view-categories.php'><b>View all categories</b></a>
+        </div> <!-- .card -->
+        <div class='card'>
+          <div class='card-header'>Tags</div>
+          <div class='card-body'>
+              <?php
+              foreach($tags as $tag) {
+                echo "<a class='badge badge-tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
+              }
+              ?>
+              <a class='colored' href='/view-tags.php'><b>View all tags</b></a>
+          </div>
+        </div> <!-- .card -->
+      </div>
+    </div> <!-- .site-main-grid -->
+  </div> <!-- .site-content -->
+  <div class='site-footer'>
+    <a href='About'>About</a>
+    <a href='About'>Privacy</a>
+    <br>
+    &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
+  </div> <!-- .site-footer -->
 </body>
 </html>
