@@ -2,7 +2,7 @@
 $root = dirname(__FILE__);
 require "$root/includes/init.php";
 //require "$root/includes/classes/database.php";
-//require "$root/includes/formatting.php";
+require "$root/includes/formatting.php";
 
 if ($_SERVER["REQUEST_METHOD"] !== "GET") {
   $error = "Invalid request!";
@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "GET") {
 $da = data_access::get_instance();
 $tags = $da->get_tags(24);
 $categories = $da->get_categories(12);
-$posts = $da->get_posts();
+$posts = $da->get_discussions();
 
 ?>
 
@@ -78,10 +78,11 @@ $posts = $da->get_posts();
                         <span>{$post['post_title']}</span>
                       </a>
                     </div>
-                    <div class='text-mute'>Submitted 21 hours ago · <span class='text-bold'>No replies yet</span></div>
-                    <div class='post-list-footer'>
-                      <span class='badge badge-cat'>Category: <a class='text-bold' href=''>Books</a></span>
-                      <a class='badge badge-tag' href=''>book</a>
+                    <div class='text-mute'>Submitted " . time_elapsed_string($post['submitted_ts']) . 
+                    " · by " . ($post['author_id']?'Someone' : 'Guest') .
+                    " · <span class='text-bold' id='rc{$post['post_id']}'>-</span></div>
+                    <div class='post-list-footer' id='post{$post['post_id']}'>
+                      <span class='badge badge-cat'>Category: <a class='text-bold' href='view-category.php?id={$post['category_id']}'>{$post['category_name']}</a></span>
                     </div>
                   </div>";
           }
@@ -99,14 +100,14 @@ $posts = $da->get_posts();
         </div> <!-- .card -->
         <div class='card'>
           <div class='card-header'>Tags</div>
-          <div class='card-body'>
+          <div class='card-body tags'>
               <?php
               foreach($tags as $tag) {
-                echo "<a class='badge badge-tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
+                echo "<a class='tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
               }
               ?>
-              <a class='colored' href='/view-tags.php'><b>View all tags</b></a>
           </div>
+          <a class='category' href='/view-tags.php'><b>View all tags</b></a>
         </div> <!-- .card -->
       </div>
     </div> <!-- .site-main-grid -->
@@ -117,5 +118,52 @@ $posts = $da->get_posts();
     <br>
     &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
   </div> <!-- .site-footer -->
+<script type='text/javascript'>
+(function() {
+  var post_ids = [
+    <?php
+    foreach($posts as $post) {
+      echo $post['post_id'].',';
+    }
+    ?>
+  ];
+  function loadTags(post_id) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var jsn = JSON.parse(this.responseText);
+        //console.log(jsn);
+        for(var key in jsn['data']) {
+          document.getElementById('post'+post_id).innerHTML += `<a class='tag' href='view-tag.php?t=${jsn['data'][key]['tag']}'>${jsn['data'][key]['tag']}</a>`;
+        }
+      }
+    };
+    xhttp.open("GET", "/api/v1/get-tags.php?id="+post_id, true);
+    xhttp.send();
+  }
+  function loadReplyCount(post_id) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200) {
+        var jsn = JSON.parse(this.responseText);
+        //console.log(jsn);
+        var c = jsn['data'][0]['reply_count'];
+        if (c>0) {
+          document.getElementById('rc'+post_id).innerHTML = `${c} replies`;
+        } else {
+          document.getElementById('rc'+post_id).innerHTML = 'No replies yet';
+        }
+      }
+    };
+    xhttp.open("GET", "/api/v1/get-reply-count.php?id="+post_id, true);
+    xhttp.send();
+  }
+  for (let index = 0; index < post_ids.length; index++) {
+    loadTags(post_ids[index]);
+    loadReplyCount(post_ids[index]);
+  }
+
+})();
+</script>
 </body>
 </html>

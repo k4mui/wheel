@@ -84,18 +84,7 @@ $da->update_post_view(
   <div class='site-content'>
     <div class='site-main-grid'>
       <div class='col-left'>
-        <div class='block-title'>Category</div>
-        <a class='feed-link' href='/view-category.php?id=<?php echo $discussion['category_id']; ?>'>
-            <?php
-            echo $discussion['category_name'];
-            ?>
-        </a>
-        <div class='block-title'>Tags</div>
-        <?php
-        foreach($tags as $tag) {
-            echo "<a class='feed-link' href='/view-tag?t={$tag['tag']}'>{$tag['tag']}</a>";
-        }
-        ?>
+        <div class='block-title'>Related Discussions</div>
       </div>
       <div class='col-middle'>
         <div class='card'>
@@ -158,24 +147,27 @@ $da->update_post_view(
       </div>
       <div class='col-right'>
         <div class='card'>
-          <div class='card-header'>Categories</div>
+          <div class='card-header'>Category</div>
           <?php
           //foreach($categories as $cat) {
           //  echo "<a class='category' href='/view-category.php?c={$cat['category_id']}'>{$cat['category_name']}</a>";
           //}
           ?>
-          <a class='category' href='/view-categories.php'><b>View all categories</b></a>
+          <a class='category' href='/view-category.php?id=<?php echo $discussion['category_id']; ?>'>
+            <?php
+            echo $discussion['category_name'];
+            ?>
+          </a>
         </div> <!-- .card -->
         <div class='card'>
           <div class='card-header'>Tags</div>
-          <div class='card-body'>
-              <?php
-              //foreach($tags as $tag) {
-              //  echo "<a class='badge badge-tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
-              //}
-              ?>
-              <a class='colored' href='/view-tags.php'><b>View all tags</b></a>
-          </div>
+          <div class='card-body tags'>
+            <?php
+            foreach($tags as $tag) {
+                echo "<a class='tag' href='/view-tag?t={$tag['tag']}'>{$tag['tag']}</a>";
+            }
+            ?>
+          </div> <!-- .card-body -->
         </div> <!-- .card -->
       </div>
     </div> <!-- .site-main-grid -->

@@ -1,7 +1,6 @@
-[08-Apr-2018 18:42:51 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'user_id' cannot be null in /home/obi/dev/localhost/wheel/includes/classes/database.php:369
+[10-Apr-2018 17:09:56 UTC] PHP Notice:  Undefined variable: user in /home/obi/dev/localhost/wheel/error.php on line 31
+[10-Apr-2018 17:09:56 UTC] PHP Fatal error:  Uncaught Error: Call to a member function is_admin() on null in /home/obi/dev/localhost/wheel/error.php:31
 Stack trace:
-#0 /home/obi/dev/localhost/wheel/includes/classes/database.php(369): mysqli_stmt->execute()
-#1 /home/obi/dev/localhost/wheel/includes/classes/database.php(477): data_access->prepared('INSERT INTO pos...', Array, false)
-#2 /home/obi/dev/localhost/wheel/view-discussion.php(35): data_access->update_post_view(2, NULL, 'BD', 'Asia/Dhaka', 'Mozilla/5.0 (X1...', 3230465757)
-#3 {main}
-  thrown in /home/obi/dev/localhost/wheel/includes/classes/database.php on line 369
+#0 /home/obi/dev/localhost/wheel/index.php(9): include()
+#1 {main}
+  thrown in /home/obi/dev/localhost/wheel/error.php on line 31

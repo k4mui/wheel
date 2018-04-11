@@ -37,106 +37,72 @@ class data_access {
     }
   } // get_instance
 
-  public function get_board($board_id) {
-    $sql = 'SELECT id, title, fa_icon, is_locked FROM boards WHERE id = ?';
-    $params = array('i', $board_id);
-    $result = $this->prepared($sql, $params);
-    return count($result) ? $result[0] : null;
-  } // get_board
-  
-  public function get_boards() {
-    $sql = 'SELECT id, title, fa_icon FROM boards';
-    return $this->select($sql);
-  } // get_boards
-
-  public function get_boards_cp() {
-    $sql = 'SELECT * FROM boards';
-    return $this->select($sql);
-  } // get_boards
-
-  public function get_board_rules($board_id) {
-    $sql = "SELECT full_text FROM rules WHERE board_id = $board_id";
-    $result = $this->select($sql);
-    return $result[0]['full_text'];
-  } // get_board_rules
-
-  public function get_board_stats($board_id) {
-    $stats = array(
-      'reply_count' => $this->count_all('replies', 'INNER JOIN discussions ON discussions.id = replies.discussion_id INNER JOIN boards ON boards.id = discussions.board_id WHERE boards.id = '.$board_id),
-      'discussion_count' => $this->count_all('discussions', 'INNER JOIN boards ON discussions.board_id = boards.id WHERE boards.id = '.$board_id),
-      'image_count' => $this->count_all('images', 'INNER JOIN replies ON replies.image_id = images.id INNER JOIN discussions ON discussions.id = replies.discussion_id WHERE discussions.board_id = '.$board_id)
-    );
-    return $stats;
-  } // get_board_stats
-
   public function get_categories($limit=null) {
     $sql = 'SELECT * FROM categories ';
     if ($limit) {
-      $sql .= "LIMIT $limit";
+      $sql = "SELECT DISTINCT sq.category_name, sq.category_id
+              FROM (SELECT categories.category_name,
+                           categories.category_id,
+                           SUM(pv.vc) as svc,
+                           pv.country_code
+                    FROM categories
+                    LEFT JOIN posts
+                      ON categories.category_id = posts.category_id
+                    LEFT JOIN (SELECT SUM(post_views.view_count) AS vc,
+                               post_views.post_id,
+                               post_views.country_code
+                                FROM post_views
+                                GROUP BY post_views.country_code,
+                               post_views.post_id) pv
+                      ON pv.post_id = posts.post_id
+                    GROUP BY categories.category_name, pv.country_code
+                    ORDER BY pv.country_code = ? DESC,svc DESC) sq
+                    LIMIT $limit";
+      $params = array('s', $_SESSION['cc']);
+      return $this->prepared($sql, $params);
     }
     return $this->select($sql);
   }
 
-  public function get_discussions($board_id, $archive=0) {
-    $sql = "SELECT d.id,
-                  d.title,
-                  d.full_text,
-                  d.creation_timestamp,
-                  i.filename,
-                  (SELECT COUNT(*)+1
-                   FROM images,
-                        replies
-                   WHERE replies.discussion_id = d.id AND
-                         replies.image_id = images.id) AS image_count,
-                  (SELECT COUNT(*)
-                   FROM replies
-                   WHERE replies.discussion_id = d.id) AS reply_count,
-                  (SELECT creation_timestamp
-                   FROM replies
-                   WHERE replies.discussion_id = d.id
-                   ORDER BY id DESC
-                   LIMIT 1) AS last_reply_timestamp
-          FROM discussions AS d,
-                images AS i
-          WHERE d.board_id = ? AND
-                d.image_id = i.id AND
-                d.archived = $archive
-          ORDER BY d.id DESC";
-    $params = array('i', $board_id);
-    return $this->prepared($sql, $params);
+  public function get_discussion($did) {
+    $sql = "SELECT posts.post_title,
+                   attachments.attachment_name,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id,
+                   posts.post_text
+            FROM posts
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            LEFT JOIN attachments
+            ON attachments.attachment_id=posts.attachment_id
+            WHERE posts.post_id = ?";
+    $params = array('i', $did);
+    $result = $this->prepared($sql, $params);
+    return count($result) ? $result[0] : null;
   } // function: get_discussions
 
-  public function get_discussion($did) {
-    $sql = "SELECT attachments.attachment_name,
-                   categories.category_id,
+  public function get_discussions($page=null) {
+    $sql = "SELECT posts.post_title,
+                   attachments.attachment_name,
                    categories.category_name,
-                   posts.author_id,
-                   posts.post_title,
+                   categories.category_id,
                    posts.post_text,
+                   posts.author_id,
                    posts.submitted_ts,
                    posts.post_id
             FROM posts
             INNER JOIN categories
-            ON posts.category_id=categories.category_id
-            LEFT JOIN attachments
-            ON attachments.attachment_id = posts.attachment_id
-            WHERE posts.parent_post_id IS NULL AND
-                  posts.post_id=?";
-    $params = array('i', $did);
-    $result = $this->prepared($sql, $params);
-    return count($result) ? $result[0] : null;
-  } // function: get_discussion
-
-  public function get_posts($page=null) {
-    $sql = "SELECT posts.post_title,
-                   posts.post_id,
-                   attachments.attachment_name
-            FROM posts
+            ON categories.category_id = posts.category_id
             LEFT JOIN attachments
             ON attachments.attachment_id=posts.attachment_id
-            WHERE posts.parent_post_id IS NULL";
+            WHERE posts.parent_post_id IS NULL
+            ORDER BY posts.submitted_ts DESC";
     return $this->select($sql);
-  } // function: get_posts
+  } // function: get_discussions
 
   public function get_recent_discussion($board_id) {
     $sql = "SELECT discussions.id,
@@ -181,7 +147,8 @@ class data_access {
             FROM posts
             LEFT JOIN attachments
             ON posts.attachment_id = attachments.attachment_id
-            WHERE posts.parent_post_id = ?";
+            WHERE posts.parent_post_id = ?
+            ORDER BY posts.submitted_ts DESC";
     $params = array('i', $did);
     return $this->prepared($sql, $params);
   } // function: get_replies
@@ -194,6 +161,12 @@ class data_access {
     );
     return $stats;
   } // function: get_site_stats
+
+  public function get_reply_count($post_id) {
+    $sql = "SELECT COUNT(post_id) AS reply_count FROM posts WHERE parent_post_id=?";
+    $params = array('i', $post_id);
+    return $this->prepared($sql, $params);
+  }
 
   public function get_tags($count) {
     $sql = "SELECT * FROM post_tags LIMIT $count";
@@ -470,11 +443,19 @@ class data_access {
   }
 
   public function update_post_view($p, $u, $cc, $t, $ua, $ip) {
-    $sql = 'INSERT INTO post_views VALUES (?, ?, CURDATE(), ?, IFNULL(?, 1), (SELECT timezone_id FROM timezones WHERE timezone_name=?), ?, ?)
+    $sql = 'INSERT INTO post_views
+              VALUES (?,
+                      ?,
+                      CURDATE(),
+                      ?,
+                      IFNULL(?, 1),
+                      (SELECT timezone_id FROM timezones WHERE timezone_name=?),
+                      ?,
+                      ?)
             ON DUPLICATE KEY
               UPDATE view_count=view_count+1';
     $params = array('iisisis', $p, 1, $cc, $u, $t, $ip, $ua);
     $this->prepared($sql, $params, false);
-  }
+  } // update_post_view
 } // class: data_access
 ?>
