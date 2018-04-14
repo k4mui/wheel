@@ -4,3 +4,9 @@ Stack trace:
 #0 /home/obi/dev/localhost/wheel/index.php(9): include()
 #1 {main}
   thrown in /home/obi/dev/localhost/wheel/error.php on line 31
+[11-Apr-2018 13:52:04 UTC] PHP Fatal error:  Uncaught Exception: DateTimeZone::__construct(): Unknown or bad timezone () in /home/obi/dev/localhost/wheel/includes/formatting.php:24
+Stack trace:
+#0 /home/obi/dev/localhost/wheel/includes/formatting.php(24): DateTimeZone->__construct('')
+#1 /home/obi/dev/localhost/wheel/index.php(81): time_elapsed_string('2018-04-09 00:0...')
+#2 {main}
+  thrown in /home/obi/dev/localhost/wheel/includes/formatting.php on line 24

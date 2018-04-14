@@ -47,7 +47,7 @@ $da->update_post_view(
   <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
   <link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
   <link href="/css/wheel_v2.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
-  <script src='/js/wheel.js' type='text/javascript'></script>
+  <script src='/js/wheel.js?v=<?php echo time();?>' type='text/javascript'></script>
 </head>
 <body>
 <div class='site-header'>
@@ -89,7 +89,8 @@ $da->update_post_view(
       <div class='col-middle'>
         <div class='card'>
             <div class='card-header'>
-                <h2><?php echo $discussion['post_title'] ?></h2>
+              <h2><?php echo $discussion['post_title'] ?></h2>
+              <span class='text-mute'>
                 Submitted
                 <?php
                 echo time_elapsed_string($discussion['submitted_ts']);
@@ -98,6 +99,7 @@ $da->update_post_view(
                 <?php
                 echo ($discussion['author_id'] ? 'Someone' : 'Guest');
                 ?>
+              </span>
             </div>
             <div class='card-body'>
                 <?php 
@@ -111,14 +113,14 @@ $da->update_post_view(
         <div class='card'>
             <div class='card-header'>Reply</div>
             <div class='card-body'>
-                <form class='form' method='post' enctype='multipart/form-data' action=''>
-                    <textarea name='dc' rows='4' placeholder='Write something..'></textarea>
-                    <div class='form-label'>Attachment <span class='sub-info'>(optional)</span>:</div>
-                    <input type='file' name='da'>
-                    <input type='hidden' name='dca' value='<?php echo $discussion['category_id']; ?>'>
-                    <input type='hidden' name='pp' value='<?php echo $discussion['post_id']; ?>'>
-                    <input class='form-submit-button' type='submit' value='Add Reply'>
-                </form>
+              <form class='form' name='reply_form' method='post' enctype='multipart/form-data' action=''>
+                <textarea name='dc' rows='4' placeholder='Write something..'></textarea>
+                <div class='form-label'>Attachment <span class='sub-info'>(optional)</span>:</div>
+                <input type='file' name='da'>
+                <input type='hidden' name='dca' value='<?php echo $discussion['category_id']; ?>'>
+                <input type='hidden' name='pp' value='<?php echo $discussion['post_id']; ?>'>
+                <input class='form-submit-button' type='submit' name='submit' value='Add Reply'>
+              </form>
             </div>
         </div>
         <div class='block-title'>
@@ -133,10 +135,10 @@ $da->update_post_view(
         <?php
         foreach($replies as $reply) {
           echo "<div class='card' id='{$reply['post_id']}'>
-                  <div class='card-header'>
+                  <div class='card-header text-mute'>Reply by 
                   " . ($reply['author_id'] ? $reply['author_id'] : 'Guest') .
-                  " - " . time_elapsed_string($reply['submitted_ts']) . "
-                  [<a href='#{$reply['post_id']}'>Permalink</a>]
+                  " · " . time_elapsed_string($reply['submitted_ts']) . "
+                  [<a href='#{$reply['post_id']}' class='text-bold'>Permalink</a>]
                   </div>
                   <div class='card-body'>
                     <pre>{$reply['post_text']}</pre>
@@ -195,6 +197,8 @@ $da->update_post_view(
   };
   xhttp.open("GET", "/api/v1/replies.php?id=<?php echo $did; ?>", true);
   xhttp.send();*/
+  disable_submit(document.reply_form);
+  document.reply_form.dc.addEventListener('input', check_reply);
 })();
 </script>
 </body>

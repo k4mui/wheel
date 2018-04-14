@@ -45,7 +45,6 @@ a.tag {
 }
 a.tag:hover {
     color: #2b6dad;
-    font-size: 13px;
 }
 button,
 input[type=button],
@@ -232,6 +231,10 @@ textarea{
     font-weight: bold;
     margin-top: 10px;
     padding: 6px;
+}
+.form-submit-button:disabled{
+    background-color: rgba(139, 58, 103,0.85);
+    cursor: not-allowed;
 }
 .form-submit-button:hover{
     background-color: rgba(139, 58, 103,0.85);

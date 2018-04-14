@@ -140,3 +140,18 @@ function process_errors() {
     }
     ID('errors-section').innerHTML = error_str;
 }
+function enable_submit(ref) {
+    ref.submit.disabled = false;
+}
+function disable_submit(ref) {
+    ref.submit.disabled = true;
+}
+function check_reply() {
+    r = document.reply_form;
+    l = r.dc.value.length;
+    if (l > 8) {
+        enable_submit(r);
+    } else {
+        disable_submit(r);
+    }
+}

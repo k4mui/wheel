@@ -283,6 +283,14 @@ class data_access {
     }
   }
 
+  public function get_discussion_titles() {
+    $sql = 'SELECT post_title, post_id
+            FROM posts 
+            WHERE parent_post_id is NULL';
+    $result = $this->select($sql);
+    return $result;
+  } // get_related_discussions
+
   public function insert_image($image) {
     $ext = $this->get_extension($image['type']);
     if (!$ext) {
