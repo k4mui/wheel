@@ -55,6 +55,14 @@ function check_date_of_birth($d, $m, $y, $dob, & $errors) {
   if (!is_valid_date($dob) && (count($errors)===$c)) {
     $errors[] = "<b>$dob</b> is not a valid date.";
   }
+  $d1 = new DateTime(date('Y-m-d'));
+  $d2 = new DateTime($dob);
+
+  $diff = $d2->diff($d1);
+
+  if ($diff->y < 13) {
+    $errors[] = 'You must be at least 13 years old to join this site.';
+  }
 }
 
 function check_discussion_attachment($image, & $errors) {

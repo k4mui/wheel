@@ -83,7 +83,7 @@ $da->update_post_view(
   </div> <!-- .site-header -->
   <div class='site-content'>
     <div class='site-main-grid'>
-      <div class='col-left'>
+      <div class='col-left' id='rd'>
         <div class='block-title'>Related Discussions</div>
       </div>
       <div class='col-middle'>
@@ -181,6 +181,29 @@ $da->update_post_view(
     &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
+function readyStateHandler() {
+  if (this.readyState == 3) {
+    //
+  } else if (this.readyState == 4) {
+    if (this.status == 200) {
+      var jsn = JSON.parse(this.responseText);
+      //console.log(jsn);
+      var jsnl = jsn.data.length;
+      if (!jsn.error[0]) {
+        if (jsnl<1) {
+          appendHtml('rd', "0 results :(");
+        } else {
+          for(var i=0;i<jsnl;i++) {
+            appendHtml('rd', "<a class='feed-link' href='/view-discussion.php?id="+ jsn.data[i].post_id +"'>"+ jsn.data[i].post_title +"</a>");
+          }
+        }
+      }
+    } else {
+
+    }
+  }
+}
+
 (function() {
   /*var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
@@ -199,6 +222,9 @@ $da->update_post_view(
   xhttp.send();*/
   disable_submit(document.reply_form);
   document.reply_form.dc.addEventListener('input', check_reply);
+  ajax('GET',
+       '/api/v1/discussions.php?relatedTo=<?php echo $discussion['post_id']; ?>',
+       readyStateHandler);
 })();
 </script>
 </body>

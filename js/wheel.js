@@ -1,3 +1,21 @@
+function ID(id) {
+    return document.getElementById(id);
+}
+function ajax(method, url, onReadyStateChange) {
+    var x;
+    if (window.XMLHttpRequest) {
+        x = new XMLHttpRequest();
+    } else {
+        x = new ActiveXObject('Microsoft.XMLHTTP');
+    }
+    x.onreadystatechange = onReadyStateChange;
+    x.open(method, url, true);
+    x.send();
+}
+function appendHtml(id, htmlToAppend) {
+    ID(id).insertAdjacentHTML('beforeend', htmlToAppend);
+}
+
 function disable_button(form_name) {
     if (document[form_name]) {
         document[form_name].submit.disabled = true;
@@ -15,9 +33,6 @@ function valid_password(p) {
     if (p.length < 8) {
         return 'Password too short';
     }
-}
-function ID(id) {
-    return document.getElementById(id);
 }
 function check_login_form() {
     ID('side_error_pw').innerHTML = '';

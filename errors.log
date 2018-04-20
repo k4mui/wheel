@@ -10,3 +10,14 @@ Stack trace:
 #1 /home/obi/dev/localhost/wheel/index.php(81): time_elapsed_string('2018-04-09 00:0...')
 #2 {main}
   thrown in /home/obi/dev/localhost/wheel/includes/formatting.php on line 24
+[20-Apr-2018 05:12:10 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function strlower() in /home/obi/dev/localhost/wheel/includes/ph/register.php:7
+Stack trace:
+#0 /home/obi/dev/localhost/wheel/register.php(7): require_once()
+#1 {main}
+  thrown in /home/obi/dev/localhost/wheel/includes/ph/register.php on line 7
+[20-Apr-2018 05:13:36 UTC] PHP Notice:  Undefined variable: user in /home/obi/dev/localhost/wheel/error.php on line 31
+[20-Apr-2018 05:13:36 UTC] PHP Fatal error:  Uncaught Error: Call to a member function is_admin() on null in /home/obi/dev/localhost/wheel/error.php:31
+Stack trace:
+#0 /home/obi/dev/localhost/wheel/index.php(9): include()
+#1 {main}
+  thrown in /home/obi/dev/localhost/wheel/error.php on line 31

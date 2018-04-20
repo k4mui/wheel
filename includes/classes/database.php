@@ -283,11 +283,13 @@ class data_access {
     }
   }
 
-  public function get_discussion_titles() {
+  public function get_related_discussions($post_id) {
     $sql = 'SELECT post_title, post_id
             FROM posts 
-            WHERE parent_post_id is NULL';
-    $result = $this->select($sql);
+            WHERE parent_post_id is NULL
+                  AND MATCH(post_title) AGAINST((SELECT post_title FROM posts WHERE post_id=?))';
+    $params = array('i', $post_id);
+    $result = $this->prepared($sql, $params);
     return $result;
   } // get_related_discussions
 
@@ -330,10 +332,9 @@ class data_access {
     return $this->prepared($sql, $params, false);
   } // insert_reply
 
-  public function insert_user($email_address, $password) {
-    $sql = "INSERT INTO users(email_address, password_hash) VALUES(?, ?)";
-    $hash = md5($password);
-    $params = array('ss', strtolower($email_address), $hash);
+  public function insert_user($username, $email, $secret, $dob) {
+    $sql = "INSERT INTO users(user_email, user_name, user_secret, date_of_birth) VALUES(?, ?, ?, ?)";
+    $params = array('ssss', $email, $username, $secret, $dob);
     return $this->prepared($sql, $params, false);
   } // insert_user
 

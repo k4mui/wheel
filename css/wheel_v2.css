@@ -69,7 +69,7 @@ textarea {
 pre {
     font-family: inherit;
     white-space: pre-wrap;
-    word-wrap: break-word;
+    word-break: keep-all;
 }
 textarea{
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
