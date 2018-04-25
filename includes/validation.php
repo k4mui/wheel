@@ -1,6 +1,5 @@
 <?php
-require_once(__DIR__."/pre_processing.php");
-require_once(__DIR__.'/classes/database.php');
+require_once(__DIR__.'/pre_processing.php');
 
 
 function check_password($pwd, & $errors) {
@@ -149,24 +148,28 @@ function is_valid_date($date, $format = 'Y-m-d') {
   return $d && $d->format($format) == $date;
 }
 
-function check_username($un, & $errors) {
+function check_username(string $un, & $errors) {
   $c = count($errors);
-  if ($un) {
-    if (strlen($un) < 3 && strlen($un) > 32) {
-      $errors[] = 'Username must be between 3 to 32 characters.';
+  $username_length = strlen($un);
+  $first_character = ord(substr($un, 0, 1));
+  if ($username_length) {
+    if ($username_length < 3) {
+      $errors[] = 'Username too small. Minimum 3 characters needed.';
+    } elseif ($username_length > 24) {
+      $errors[] = 'Username too big. Maximum 24 characters allowed.';
+    } elseif ($first_character<97 || $first_character>122) {
+      $errors[] = 'Username must start with a letter (a-z).';
+    } elseif (preg_match('/[^a-z_\-0-9]/', $un)) {
+      $errors[] = 'Username can only contain letters(a-z), numbers(0-9), '
+      .           'hyphens(-) and underscores(_).';
     }
   } else {
     $errors[] = 'Username cannot be empty.';
   }
   if (count($errors)===$c) {
-    $da = data_access::get_instance();
-    if (!$da) {
-      die('DB Error');
-    }
-    if (!$da->is_username_available($un)) {
-      $errors[] = "<b>$un</b> is already taken.";
-    }
-    unset($da);
+    //if (!$da->is_username_available($un)) {
+    //  $errors[] = "<b>$un</b> is already taken.";
+    //}
   }
 }
 ?>

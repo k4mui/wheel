@@ -1,19 +1,39 @@
 <?php
-$root = dirname(__FILE__);
-require "$root/includes/init.php";
-//require "$root/includes/classes/database.php";
-require "$root/includes/formatting.php";
+try {
+  $root = dirname(__FILE__);
+  require "$root/includes/init.php";
+  require "$root/includes/formatting.php";
 
-if ($_SERVER["REQUEST_METHOD"] !== "GET") {
-  $error = "Invalid request!";
-  include("error.php");
-  die();
+  switch($_SERVER['REQUEST_METHOD']) {
+    case 'GET': break;
+    default: throw new invalid_request_method_error(__FILE__, __LINE__);
+  }
+
+
+  $tags = $da->get_tags(24);
+  $categories = $da->get_categories(12);
+  if (isset($_GET['tr'])) {
+    //$posts = $da->get_trending_discussions();
+    $list_header = 'Top Trending Discussions';
+    $active_link = 3;
+  } elseif (isset($_GET['rc'])) {
+    $posts = $da->get_recent_discussions();
+    $list_header = 'Recently Posted Discussions';
+    $active_link = 2;
+  } else {
+    $posts = $da->get_discussions();
+    $list_header = 'Discussions for You';
+    $active_link = 1;
+  }
+} catch(Exception $e) {
+  if (method_exists($e, 'process_error')) { // check if custom error
+    $e->process_error();
+  }
+  error_log($e);
+  die('Unexpected error occurred. Please try again in a few minutes.');
 }
-
-$da = data_access::get_instance();
-$tags = $da->get_tags(24);
-$categories = $da->get_categories(12);
-$posts = $da->get_discussions();
+//$timezones = $da->get_timezones();
+//$countries = $da->get_countries();
 
 ?>
 
@@ -65,11 +85,12 @@ $posts = $da->get_discussions();
     <div class='site-main-grid'>
       <div class='col-left'>
         <div class='block-title'>Feed</div>
-        <a class='feed-link selected' href=''>Top Discussions</a>
-        <a class='feed-link' href=''>Latest Discussions</a>
+        <a class='feed-link <?php echo ($active_link==1?'selected':''); ?>' href='/'>Relevant Discussions</a>
+        <a class='feed-link <?php echo ($active_link==2?'selected':''); ?>' href='?rc'>Recent Discussions</a>
+        <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='?tr'>Top Trending</a>
       </div>
       <div class='col-middle'>
-        <div class='block-title'>Discussions for you</div>
+        <div class='block-title'><?php echo $list_header; ?></div>
         <?php
           foreach($posts as $post) {
             echo "<div class='card-post-list'>
@@ -116,7 +137,10 @@ $posts = $da->get_discussions();
     <a href='About'>About</a>
     <a href='About'>Privacy</a>
     <br>
-    &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
+    &copy; 2018 wheel.
+    Timezone: <?php echo $_SESSION['timezone_name']; ?>,
+    Country: <?php echo $_SESSION['country_name']; ?>
+    (<a class='text-bold' href=''>Change</a>)
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
 (function() {
@@ -158,10 +182,10 @@ $posts = $da->get_discussions();
     xhttp.open("GET", "/api/v1/get-reply-count.php?id="+post_id, true);
     xhttp.send();
   }
-  for (let index = 0; index < post_ids.length; index++) {
-    loadTags(post_ids[index]);
-    loadReplyCount(post_ids[index]);
-  }
+  //for (let index = 0; index < post_ids.length; index++) {
+  //  loadTags(post_ids[index]);
+  //  loadReplyCount(post_ids[index]);
+  //}
 
 })();
 </script>

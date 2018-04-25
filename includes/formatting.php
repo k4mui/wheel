@@ -21,9 +21,9 @@ function human_readable_filesize($bytes) {
 
 function time_elapsed_string($datetime, $full = false) {
   $now = new DateTime;
-  $now->setTimezone(new DateTimeZone($_SESSION['tz']));
+  $now->setTimezone(new DateTimeZone($_SESSION['utc_offset']));
   $ago = new DateTime($datetime);
-  $ago->setTimezone(new DateTimeZone($_SESSION['tz']));
+  $ago->setTimezone(new DateTimeZone($_SESSION['utc_offset']));
   $diff = $now->diff($ago);
 
   $diff->w = floor($diff->d / 7);

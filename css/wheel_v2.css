@@ -19,7 +19,7 @@
     box-sizing: border-box;
 }
 html {
-    background-color: #f8f8f8;
+    background-color: #f6f6f6;
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     font-size: 15px;
     height:100%;
@@ -103,8 +103,8 @@ textarea{
 }
 .card {
     background-color: #fff;
-    border:1px solid #eaeaea;
-    border-radius: 2px;
+    border:1px solid rgb(133, 72, 105);
+    border-radius: 4px;
 }
 .card:not(:first-child) {
     margin-top: 20px;
@@ -120,13 +120,16 @@ textarea{
     color: rgb(170,30,30);
 }
 .card-header {
-    border-bottom: 1px solid #eaeaea;
+    background-color: rgb(133, 72, 105);
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    color: white;
     padding: 10px;
 }
 .card-post-list {
     background-color: white;
-    border:1px solid #eaeaea;
-    border-radius: 2px;
+    border:1px solid #cdcdcd;
+    border-radius: 4px;
     padding: 8px;
 }
 .card-post-list:not(:first-child) {
@@ -136,10 +139,22 @@ textarea{
     line-height: 1.5;
     margin: 7px 0;
 }
+.card.card-discussion>.card-header {
+    background-color: #F6F6F6;
+    border-bottom: 1px solid #ddd;
+    color: black;
+}
+.card.card-reply>.card-header {
+    background-color: #F6F6F6;
+    border-bottom: 1px solid #ddd;
+    color: black;
+}
 .category {
-    color: dodgerblue;
+    color: rgb(133, 72, 105);
     display: block;
     border-bottom: 1px solid #f8f3f8;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
     padding: 4px 8px;
 }
 .category:hover {
@@ -177,7 +192,7 @@ textarea{
     text-decoration: none;
 }
 .feed-link:hover {
-    color: dodgerblue;
+    color: rgb(175, 92, 136);
     text-decoration: none;
 }
 .feed-link.selected {
@@ -222,6 +237,12 @@ textarea{
 }
 .form-label:not(:first-child) {
     margin-top: 12px;
+}
+.form-transparent>select {
+    background-color: inherit;
+}
+.form-transparent>select>option {
+    display: inline;
 }
 .form-submit-button {
     background-color: rgb(139, 58, 103);
@@ -289,7 +310,8 @@ div[class^='grid-']:not(:first-child) {
     padding: 0 8px;
 }
 .list-inline li a:hover {
-    background-color: rgba(216, 116, 171, 0.2);
+    background-color: rgba(240, 128, 187, 0.3);
+    text-decoration: none;
 }
 .nav-menu {
     float: right;
@@ -317,8 +339,6 @@ div[class^='grid-']:not(:first-child) {
 }
 .site-footer {
     background-color: #f8f8f8;
-    border-top: 1px solid #efefef;
-    /*box-shadow:0 -1px 12px -2px rgba(113,62,90,0.2);*/
     color: #888;
     font-size: 12px;
     margin-top: 10px;
@@ -334,7 +354,7 @@ div[class^='grid-']:not(:first-child) {
     text-decoration: underline;
 }
 .site-header {
-    background-color: #713E5a;
+    background-color: rgb(133, 72, 105);
     border-bottom:1px solid #ded;
     box-shadow:0 4px 12px -2px rgba(113,62,90,0.2);
     color: white;
@@ -396,6 +416,9 @@ div[class^='grid-']:not(:first-child) {
     font-size: 14px;
     font-weight: normal!important;
 }
+.tags>a{
+    color: rgb(133, 72, 105);
+}
 .tags>a.tag:nth-child(3n) {
     font-size: 22px;
     font-weight: normal;
@@ -406,6 +429,9 @@ div[class^='grid-']:not(:first-child) {
 .text-mute {
     color: #999;
     font-size: 13px;
+}
+.text-xs {
+    font-size: 11px;
 }
 
 #submit-button:disabled {

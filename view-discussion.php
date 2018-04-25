@@ -1,43 +1,46 @@
 <?php
-$root = dirname(__FILE__);
-require "$root/includes/init.php";
-//require "$root/includes/classes/database.php";
-require "$root/includes/formatting.php";
-require_once("$root/includes/client.php");
-$errors = array();
+try {
+  $root = dirname(__FILE__);
+  require("$root/includes/init.php");
+  require("$root/includes/formatting.php");
 
-if ($_SERVER['REQUEST_METHOD']==='POST') {
-    require_once('includes/ph/view-discussion.php');
-} elseif ($_SERVER["REQUEST_METHOD"] !== "GET") {
-  $error = "Invalid request!";
-  include("error.php");
-  die();
+  $discussion_id = null;
+  $errors = array();
+
+  switch($_SERVER['REQUEST_METHOD']) {
+    case 'POST': require('includes/ph/view-discussion.php'); break;
+    case 'GET': break;
+    default: throw new invalid_request_method_error(__FILE__, __LINE__);
+  }
+
+  $discussion_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+  if ($discussion_id) { // discussion id is valid integer
+    $discussion = $da->get_discussion($discussion_id);
+    $tags = $da->get_tags_by_discussion_id($discussion_id);
+    $reply_count = 0;
+  } else { // discussion id is invalid or not provided
+    throw new page_not_found_error(__FILE__, __LINE__);
+  }
+
+  // update post views
+  $da->update_post_view(
+    $discussion_id,
+    isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1,
+    $_SESSION['country_id'],
+    $_SESSION['timezone_id'],
+    $_SESSION['client_id']
+  );
+} catch(Exception $e) {
+  if (method_exists($e, 'process_error')) { // check if custom error
+    $e->process_error();
+  }
+  error_log($e);
+  die('Unexpected error occurred. Please try again in a few minutes.');
 }
-$did = isset($_GET['id']) ? (int)$_GET['id'] : null;
-if ($did) {
-    $da = data_access::get_instance();
-    $discussion = $da->get_discussion($did);
-    if (!$discussion) {
-        die('Worng id');
-    }
-    $tags = $da->get_tags_by_post_id($did);
-    $replies = $da->get_replies($did);
-    $reply_count = count($replies);
-} else {
-    die('1');
-}
-$da->update_post_view(
-  $did,
-  isset($_SESSION['uid']) ? $_SESSION['uid'] : null,
-  $_SESSION['cc'],
-  $_SESSION['tz'],
-  isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null,
-  ip2long(get_client_ip())
-);
 ?>
 
 <!DOCTYPE html>
-<html lang="en-US">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>wheel - Home</title>
@@ -87,7 +90,7 @@ $da->update_post_view(
         <div class='block-title'>Related Discussions</div>
       </div>
       <div class='col-middle'>
-        <div class='card'>
+        <div class='card card-discussion'>
             <div class='card-header'>
               <h2><?php echo $discussion['post_title'] ?></h2>
               <span class='text-mute'>
@@ -123,29 +126,9 @@ $da->update_post_view(
               </form>
             </div>
         </div>
-        <div class='block-title'>
-          <?php
-          if ($reply_count) {
-            echo "$reply_count replies";
-          } else {
-            echo "No replies yet";
-          }
-          ?>
+        <div id='reply_count' class='block-title'>
         </div>
-        <?php
-        foreach($replies as $reply) {
-          echo "<div class='card' id='{$reply['post_id']}'>
-                  <div class='card-header text-mute'>Reply by 
-                  " . ($reply['author_id'] ? $reply['author_id'] : 'Guest') .
-                  " · " . time_elapsed_string($reply['submitted_ts']) . "
-                  [<a href='#{$reply['post_id']}' class='text-bold'>Permalink</a>]
-                  </div>
-                  <div class='card-body'>
-                    <pre>{$reply['post_text']}</pre>
-                  </div>
-                </div>";
-        }
-        ?>
+        <div id='replies_section'></div>
       </div>
       <div class='col-right'>
         <div class='card'>
@@ -178,25 +161,34 @@ $da->update_post_view(
     <a href='About'>About</a>
     <a href='About'>Privacy</a>
     <br>
-    &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
+    &copy; 2018 wheel
+    Timezone: <?php echo $_SESSION['timezone_name']; ?>,
+    Country: <?php echo $_SESSION['country_name']; ?>
+    (<a class='text-bold' href=''>Change</a>)
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
 function readyStateHandler() {
   if (this.readyState == 3) {
-    //
+    //inner_html('replies_section', 'Loading replies...');
   } else if (this.readyState == 4) {
     if (this.status == 200) {
       var jsn = JSON.parse(this.responseText);
-      //console.log(jsn);
       var jsnl = jsn.data.length;
-      if (!jsn.error[0]) {
-        if (jsnl<1) {
-          appendHtml('rd', "0 results :(");
-        } else {
-          for(var i=0;i<jsnl;i++) {
-            appendHtml('rd', "<a class='feed-link' href='/view-discussion.php?id="+ jsn.data[i].post_id +"'>"+ jsn.data[i].post_title +"</a>");
-          }
+      if (jsnl > 0) {
+        inner_html('reply_count', jsnl + ' replies.');
+        for(var i=0;i<jsnl;i++) {
+          var dta = "<div class='card card-reply'>" +
+                    "  <div class='card-header text-mute'> Reply by " +
+                    jsn.data[i].author + " · " + jsn.data[i].time +
+                    "  </div>" +
+                    "  <div class='card-body'><pre>" +
+                    jsn.data[i].post_text +
+                    "  </pre></div>" +
+                    "</div>";
+          append_html('replies_section', dta);
         }
+      } else {
+        inner_html('reply_count', 'No replies yet.');
       }
     } else {
 
@@ -205,26 +197,11 @@ function readyStateHandler() {
 }
 
 (function() {
-  /*var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var jsn = JSON.parse(this.responseText);
-      console.log(jsn);
-      console.log(this.responseText);
-      //if (jsn.reply_count==0) {
-          ID('replies-section').innerHTML = 'No replies';
-      //} else {
-        //ID('replies-section').innerHTML = jsn.reply_count + ' replies';
-      //}
-    }
-  };
-  xhttp.open("GET", "/api/v1/replies.php?id=<?php echo $did; ?>", true);
-  xhttp.send();*/
   disable_submit(document.reply_form);
   document.reply_form.dc.addEventListener('input', check_reply);
-  ajax('GET',
-       '/api/v1/discussions.php?relatedTo=<?php echo $discussion['post_id']; ?>',
-       readyStateHandler);
+  ajax('GET'
+  ,    '/api/v1/replies.php?discussion_id=<?php echo $discussion_id; ?>'
+  ,    readyStateHandler);
 })();
 </script>
 </body>

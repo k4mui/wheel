@@ -1,6 +1,5 @@
 <?php
 require_once(__DIR__.'/../validation.php');
-require_once(__DIR__.'/../classes/database.php');
 
 $errors = array();
 
@@ -19,17 +18,11 @@ check_username($un, $errors);
 check_password_pair($us, $cus, $errors);
 
 if (!$errors) {
-    $da = data_access::get_instance();
-    if ($da) {
-        $res = $da->insert_user($un, $ue, md5($us), $dob);
-        unset($da);
-        if ($res) {
-            die('Registration successful. You can login to your account now.');
-        } else {
-            die('Username or email already taken.');
-        }
+    $res = $da->insert_user($un, $ue, md5($us), $dob);
+    if ($res) {
+        die('Registration successful. You can login to your account now.');
     } else {
-        die('DB Connect error.');
+        die('Username or email already taken.');
     }
 }
 ?>

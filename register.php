@@ -1,25 +1,20 @@
 <?php
-$root = dirname(__FILE__);
-require_once("$root/includes/init.php");
-require_once("$root/includes/classes/database.php");
-//require "$root/includes/formatting.php";
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  require_once("$root/includes/ph/register.php");
-} elseif ($_SERVER["REQUEST_METHOD"] !== "GET") {
-  $error = "Invalid request!";
-  include("error.php");
-  die();
-}
-$category = (isset($_GET['c']) && $_GET['c']) ? strtolower($_GET['c']) : null;
-//$rows = array();
+try {
+  $root = dirname(__FILE__);
+  require_once("$root/includes/init.php");
 
-$da = data_access::get_instance();
-if ($da === null) {
-  include("error.php");
-  die();
+  switch($_SERVER['REQUEST_METHOD']) {
+    case 'POST': require("$root/includes/ph/register.php"); break;
+    case 'GET': break;
+    default: throw new invalid_request_method_error(__FILE__, __LINE__);
+  }
+} catch(Exception $e) {
+  if (method_exists($e, 'process_error')) { // check if custom error
+    $e->process_error();
+  }
+  error_log($e);
+  die('Unexpected error occurred. Please try again in a few minutes.');
 }
-
-unset($da);
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +49,7 @@ unset($da);
           <ul class='list list-inline'>
             <li><a href='new-discussion.php'>New Discussion</a></li>
             <?php
-            if (!isset($_SESSION['uid'])) {
+            if (!isset($_SESSION['user_id'])) {
               echo "<li><a href='/register.php'>Register</a></li>
                     <li><a href='/login.php'>Login</a></li>";
             } else {
@@ -189,7 +184,10 @@ unset($da);
     <a href='About'>About</a>
     <a href='About'>Privacy</a>
     <br>
-    &copy; 2018 wheel. Timezone: <?php echo $ud_timezone; ?>.
+    &copy; 2018 wheel.
+    Timezone: <?php echo $_SESSION['timezone_name']; ?>,
+    Country: <?php echo $_SESSION['country_name']; ?>
+    (<a class='text-bold' href=''>Change</a>)
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
 (function() {

@@ -45,4 +45,9 @@ function get_client_info() {
     return $user_info;
 }
 
+function load_client_info(array & $client_info) {
+    $user_info = json_decode(file_get_contents('https://ipapi.co/'.get_client_ip().'/json/'), true);
+    $client_info['utc_offset'] = $user_info['utc_offset'];
+    $client_info['country'] = $user_info['country'];
+}
 ?>

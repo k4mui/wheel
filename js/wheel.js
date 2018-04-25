@@ -12,8 +12,11 @@ function ajax(method, url, onReadyStateChange) {
     x.open(method, url, true);
     x.send();
 }
-function appendHtml(id, htmlToAppend) {
-    ID(id).insertAdjacentHTML('beforeend', htmlToAppend);
+function append_html(id, html_to_append) {
+    ID(id).insertAdjacentHTML('beforeend', html_to_append);
+}
+function inner_html(id, html) {
+    ID(id).innerHTML = html;
 }
 
 function disable_button(form_name) {
