@@ -222,6 +222,25 @@ class data_access {
     return $this->prepared($sql, $params);
   }
 
+  public function get_saved_discussions() {
+    $sql = "SELECT posts.post_title,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM saved_posts
+            INNER JOIN posts
+            ON saved_posts.post_id = posts.post_id
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            WHERE saved_posts.user_id=?
+            ORDER BY posts.submitted_ts DESC";
+    $params = array('i', $_SESSION['user_id']);
+    return $this->prepared($sql, $params);
+  } // get_saved_discussions()
+
   public function get_tags($count) {
     $sql = "SELECT * FROM post_tags LIMIT $count";
     return $this->select($sql);
@@ -421,6 +440,15 @@ class data_access {
     return $result ? true : false;
   } // is_saved()
 
+  public function is_subscribed($user_id, $category_id) {
+    $sql = 'SELECT * FROM category_subscriptions
+            WHERE user_id=?
+            AND category_id=?';
+    $params = array('ii', $user_id, $category_id);
+    $result = $this->prepared($sql, $params);
+    return $result ? true : false;
+  } // is_subscribed()
+
   public function add_saved($user_id, $discussion_id) {
     $sql = 'INSERT INTO saved_posts
             VALUES (?, ?)';
@@ -428,6 +456,14 @@ class data_access {
     $result = $this->prepared($sql, $params, false, true);
     return $result ? true : false;
   } // add_saved()
+
+  public function subscribe($user_id, $category_id) {
+    $sql = 'INSERT INTO category_subscriptions
+            VALUES (?, ?)';
+    $params = array('ii', $category_id, $user_id);
+    $result = $this->prepared($sql, $params, false, true);
+    return $result ? true : false;
+  } // subscribe()
 
   public function remove_saved($user_id, $discussion_id) {
     $sql = 'DELETE FROM saved_posts
@@ -437,6 +473,15 @@ class data_access {
     $result = $this->prepared($sql, $params, false, true);
     return $result ? true : false;
   } // remove_saved()
+
+  public function unsubscribe($user_id, $category_id) {
+    $sql = 'DELETE FROM category_subscriptions
+            WHERE category_id = ?
+            AND user_id = ?';
+    $params = array('ii', $category_id, $user_id);
+    $result = $this->prepared($sql, $params, false, true);
+    return $result ? true : false;
+  } // unsubscribe()
 
   public function insert_user($username, $email, $secret, $dob) {
     $sql = "INSERT INTO users

@@ -39,6 +39,7 @@ try {
   <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
 	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
 	<link href="/css/wheel_v2.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
+  <script src='/js/wheel.js' type='text/javascript'></script>
 </head>
 <body>
 <div class='site-header'>
@@ -81,7 +82,7 @@ try {
         <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='?tr'>Top Trending</a>
       </div>
       <div class='col-middle'>
-        <div class='block-title'><?php echo $list_header; ?></div>
+        <div class='block-title'>Discussions on '<?php echo $category['category_name']; ?>' <span id='subscription-info'></span></div>
         <?php
           foreach($posts as $post) {
             echo "<div class='card-post-list'>
@@ -134,50 +135,70 @@ try {
     (<a class='text-bold' href=''>Change</a>)
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
-(function() {
-  var post_ids = [
-    <?php
-    foreach($posts as $post) {
-      echo $post['post_id'].',';
-    }
-    ?>
-  ];
-  function loadTags(post_id) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        var jsn = JSON.parse(this.responseText);
-        //console.log(jsn);
-        for(var key in jsn['data']) {
-          document.getElementById('post'+post_id).innerHTML += `<a class='tag' href='view-tag.php?t=${jsn['data'][key]['tag']}'>${jsn['data'][key]['tag']}</a>`;
-        }
-      }
-    };
-    xhttp.open("GET", "/api/v1/get-tags.php?id="+post_id, true);
-    xhttp.send();
-  }
-  function loadReplyCount(post_id) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        var jsn = JSON.parse(this.responseText);
-        //console.log(jsn);
-        var c = jsn['data'][0]['reply_count'];
-        if (c>0) {
-          document.getElementById('rc'+post_id).innerHTML = `${c} replies`;
+function subscription_info_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+        //
+      } else {
+        if (rjs.data[0]) {
+          inner_html('subscription-info', "(<a id='unsubscribe' href='#'>Unsubscribe</a>)");
         } else {
-          document.getElementById('rc'+post_id).innerHTML = 'No replies yet';
+          inner_html('subscription-info', "(<a id='subscribe' href='#'>Subscribe</a>)");
         }
       }
-    };
-    xhttp.open("GET", "/api/v1/get-reply-count.php?id="+post_id, true);
-    xhttp.send();
+    }
   }
-  //for (let index = 0; index < post_ids.length; index++) {
-  //  loadTags(post_ids[index]);
-  //  loadReplyCount(post_ids[index]);
-  //}
+}
+function subscribe_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+        //
+      } else {
+        if (rjs.data[0]) {
+          inner_html('subscription-info', "(<a id='unsubscribe' href='#'>Unsubscribe</a>)");
+        } else {
+          //inner_html('is-saved', "(<a id='add-saved' href='#'>Add to saved</a>)");
+        }
+      }
+    }
+  }
+}
+function unsubscribe_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+      } else {
+        if (rjs.data[0]) {
+          inner_html('subscription-info', "(<a id='subscribe' href='#'>Subscribe</a>)");
+        } else {
+          //inner_html('is-saved', "(<a id='remove-saved' href='#'>Remove from saved</a>)");
+        }
+      }
+    }
+  }
+}
 
+(function() {
+  <?php
+  if (isset($_SESSION['user_id'])) {
+    echo "ajax('GET','/api/v1/is-subscribed.php?category_id=$category_id',subscription_info_handler);";
+    echo "document.body.addEventListener('click', function(e) {
+      if (e.srcElement.id=='subscribe') {
+        ajax('GET','/api/v1/subscribe.php?category_id=$category_id',subscribe_handler);
+        return true;
+      }
+      else if (e.srcElement.id=='unsubscribe') {
+        ajax('GET','/api/v1/unsubscribe.php?category_id=$category_id',unsubscribe_handler);
+        return true;
+      }
+    });";
+  }
+  ?>
 })();
 </script>
 </body>

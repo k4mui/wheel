@@ -16,13 +16,16 @@ try {
     //$posts = $da->get_trending_discussions();
     $list_header = 'Top Trending Discussions';
     $active_link = 3;
-  } elseif (isset($_GET['rc'])) {
-    $posts = $da->get_recent_discussions();
-    $list_header = 'Recently Posted Discussions';
+  } elseif (isset($_GET['sd'])) {
+    if (!isset($_SESSION['user_id'])) {
+      throw new forbidden_access_error(__FILE__, __LINE__);
+    }
+    $posts = $da->get_saved_discussions();
+    $list_header = 'Saved Discussions';
     $active_link = 2;
   } else {
     $posts = $da->get_discussions();
-    $list_header = 'Discussions for You';
+    $list_header = 'Latest discussions';
     $active_link = 1;
   }
 } catch(Exception $e) {
@@ -86,26 +89,30 @@ try {
       <div class='col-left'>
         <div class='block-title'>Feed</div>
         <a class='feed-link <?php echo ($active_link==1?'selected':''); ?>' href='/'>Latest Discussions</a>
-        <a class='feed-link <?php echo ($active_link==2?'selected':''); ?>' href='?rc'>Saved Discussions</a>
+        <a class='feed-link <?php echo ($active_link==2?'selected':''); ?>' href='?sd'>Saved Discussions</a>
         <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='?tr'>Top Trending</a>
       </div>
       <div class='col-middle'>
         <div class='block-title'><?php echo $list_header; ?></div>
         <?php
-          foreach($posts as $post) {
-            echo "<div class='card-post-list'>
-                    <div class='post-list-title'>
-                      <a href='view-discussion.php?id={$post['post_id']}'>
-                        <span>{$post['post_title']}</span>
-                      </a>
-                    </div>
-                    <div class='text-mute'>Submitted " . time_elapsed_string($post['submitted_ts']) . 
-                    " · by " . ($post['author_id']?'Someone' : 'Guest') .
-                    " · <span class='text-bold' id='rc{$post['post_id']}'>-</span></div>
-                    <div class='post-list-footer' id='post{$post['post_id']}'>
-                      <span class='badge badge-cat'>Category: <a class='text-bold' href='view-category.php?id={$post['category_id']}'>{$post['category_name']}</a></span>
-                    </div>
-                  </div>";
+          if ($posts) {
+            foreach($posts as $post) {
+              echo "<div class='card-post-list'>
+                      <div class='post-list-title'>
+                        <a href='view-discussion.php?id={$post['post_id']}'>
+                          <span>{$post['post_title']}</span>
+                        </a>
+                      </div>
+                      <div class='text-mute'>Submitted " . time_elapsed_string($post['submitted_ts']) . 
+                      " · by " . ($post['author_id']?'Someone' : 'Guest') .
+                      " · <span class='text-bold' id='rc{$post['post_id']}'>-</span></div>
+                      <div class='post-list-footer' id='post{$post['post_id']}'>
+                        <span class='badge badge-cat'>Category: <a class='text-bold' href='view-category.php?id={$post['category_id']}'>{$post['category_name']}</a></span>
+                      </div>
+                    </div>";
+            }
+          } else {
+            echo 'No posts sorry :(';
           }
           ?>
       </div>
