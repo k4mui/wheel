@@ -35,6 +35,17 @@ if (!isset($_SESSION['timezone_id'])) { // session info not set
     }
 }
 
+// check session cookie
+if (!isset($_SESSION['user_id'])) {
+    if (isset($_COOKIE['wsess'])) {
+        $cookie_value = $_COOKIE['wsess'];
+        $user = $da->get_user_from_session_id($cookie_value);
+        if ($user) {
+            $_SESSION['user_id'] = $user['user_id'];
+        }
+    }
+}
+
 //print_r($_SESSION);
 
 ?>

@@ -1,10 +1,81 @@
-[25-Apr-2018 17:03:10 UTC] PHP Notice:  Undefined variable: ud_timezone in /home/obi/dev/localhost/wheel/register.php on line 192
-[25-Apr-2018 17:30:14 UTC] PHP Notice:  Undefined variable: ud_timezone in /home/obi/dev/localhost/wheel/register.php on line 192
-[25-Apr-2018 17:57:48 UTC] PHP Notice:  Undefined variable: da in /home/obi/dev/localhost/wheel/includes/validation.php on line 171
-[25-Apr-2018 17:57:48 UTC] PHP Fatal error:  Uncaught Error: Call to a member function is_username_available() on null in /home/obi/dev/localhost/wheel/includes/validation.php:171
+[27-Apr-2018 14:41:26 UTC] PHP Notice:  Undefined index: utc_offset in /home/obi/dev/localhost/wheel/includes/client.php on line 50
+[27-Apr-2018 14:41:26 UTC] PHP Notice:  Undefined index: country in /home/obi/dev/localhost/wheel/includes/client.php on line 51
+[27-Apr-2018 14:41:26 UTC] PHP Fatal error:  Uncaught TypeError: Argument 1 passed to data_access::get_country() must be of the type string, null given, called in /home/obi/dev/localhost/wheel/includes/session_handler.php on line 19 and defined in /home/obi/dev/localhost/wheel/includes/classes/database.php:75
 Stack trace:
-#0 /home/obi/dev/localhost/wheel/includes/ph/register.php(17): check_username('obi', Array)
-#1 /home/obi/dev/localhost/wheel/register.php(7): require('/home/obi/dev/l...')
-#2 {main}
-  thrown in /home/obi/dev/localhost/wheel/includes/validation.php on line 171
-[25-Apr-2018 18:04:55 UTC] PHP Notice:  Undefined variable: ud_timezone in /home/obi/dev/localhost/wheel/login.php on line 108
+#0 /home/obi/dev/localhost/wheel/includes/session_handler.php(19): data_access->get_country(NULL)
+#1 /home/obi/dev/localhost/wheel/includes/init.php(30): require_once('/home/obi/dev/l...')
+#2 /home/obi/dev/localhost/wheel/index.php(4): require('/home/obi/dev/l...')
+#3 {main}
+  thrown in /home/obi/dev/localhost/wheel/includes/classes/database.php on line 75
+[27-Apr-2018 14:41:27 UTC] PHP Notice:  Undefined index: utc_offset in /home/obi/dev/localhost/wheel/includes/client.php on line 50
+[27-Apr-2018 14:41:27 UTC] PHP Notice:  Undefined index: country in /home/obi/dev/localhost/wheel/includes/client.php on line 51
+[27-Apr-2018 14:41:27 UTC] PHP Fatal error:  Uncaught TypeError: Argument 1 passed to data_access::get_country() must be of the type string, null given, called in /home/obi/dev/localhost/wheel/includes/session_handler.php on line 19 and defined in /home/obi/dev/localhost/wheel/includes/classes/database.php:75
+Stack trace:
+#0 /home/obi/dev/localhost/wheel/includes/session_handler.php(19): data_access->get_country(NULL)
+#1 /home/obi/dev/localhost/wheel/includes/init.php(30): require_once('/home/obi/dev/l...')
+#2 /home/obi/dev/localhost/wheel/index.php(4): require('/home/obi/dev/l...')
+#3 {main}
+  thrown in /home/obi/dev/localhost/wheel/includes/classes/database.php on line 75
+[27-Apr-2018 14:54:40 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:54:40 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:54:40 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:54:40 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 99
+[27-Apr-2018 14:54:40 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 122
+[27-Apr-2018 14:56:09 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:56:09 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:56:09 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:56:09 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:56:09 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 14:57:45 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:57:45 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:57:45 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:57:45 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:57:45 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 14:59:00 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:59:00 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:59:00 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:59:00 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:59:00 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 14:59:04 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:59:04 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:59:04 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:59:04 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:59:04 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 14:59:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:59:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:59:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:59:28 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:59:28 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 14:59:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 70
+[27-Apr-2018 14:59:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 71
+[27-Apr-2018 14:59:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-categories.php on line 72
+[27-Apr-2018 14:59:32 UTC] PHP Notice:  Undefined variable: tags in /home/obi/dev/localhost/wheel/view-categories.php on line 90
+[27-Apr-2018 14:59:32 UTC] PHP Notice:  Undefined variable: posts in /home/obi/dev/localhost/wheel/view-categories.php on line 113
+[27-Apr-2018 15:12:46 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 15:12:46 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 15:12:46 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 15:12:46 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 15:13:41 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 15:13:41 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 15:13:41 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 15:13:41 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 15:13:54 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 15:13:54 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 15:13:54 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 15:13:54 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 15:14:08 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 15:14:08 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 15:14:08 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 15:14:08 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 15:14:15 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 15:14:15 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 15:14:15 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 15:14:15 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 16:14:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 16:14:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 16:14:28 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 16:14:28 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84
+[27-Apr-2018 16:14:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 79
+[27-Apr-2018 16:14:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 80
+[27-Apr-2018 16:14:32 UTC] PHP Notice:  Undefined variable: active_link in /home/obi/dev/localhost/wheel/view-category.php on line 81
+[27-Apr-2018 16:14:32 UTC] PHP Notice:  Undefined variable: list_header in /home/obi/dev/localhost/wheel/view-category.php on line 84

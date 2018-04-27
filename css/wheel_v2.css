@@ -200,6 +200,14 @@ textarea{
     border: 1px solid #dfdfdf;
     border-radius: 2px;
 }
+.feed-link-bigger {
+    font-size: 14px;
+    padding: 4px;
+    text-decoration: none;
+}
+.feed-link-bigger:hover {
+    padding-left: 8px;
+}
 .form input[type=file],
 .form input[type=password],
 .form input[type=text],

@@ -9,22 +9,15 @@ try {
     default: throw new invalid_request_method_error(__FILE__, __LINE__);
   }
 
-
+  $category_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+  if ($category_id) {
+    $category = $da->get_category($category_id);
+  } else {
+    throw new page_not_found_error(__FILE__, __LINE__);
+  }
   $tags = $da->get_tags(24);
   $categories = $da->get_categories(12);
-  if (isset($_GET['tr'])) {
-    //$posts = $da->get_trending_discussions();
-    $list_header = 'Top Trending Discussions';
-    $active_link = 3;
-  } elseif (isset($_GET['rc'])) {
-    $posts = $da->get_recent_discussions();
-    $list_header = 'Recently Posted Discussions';
-    $active_link = 2;
-  } else {
-    $posts = $da->get_discussions();
-    $list_header = 'Discussions for You';
-    $active_link = 1;
-  }
+  $posts = $da->get_discussions_by_category_id($category_id);
 } catch(Exception $e) {
   if (method_exists($e, 'process_error')) { // check if custom error
     $e->process_error();
@@ -32,8 +25,6 @@ try {
   error_log($e);
   die('Unexpected error occurred. Please try again in a few minutes.');
 }
-//$timezones = $da->get_timezones();
-//$countries = $da->get_countries();
 
 ?>
 

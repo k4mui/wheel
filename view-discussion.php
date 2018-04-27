@@ -102,6 +102,7 @@ try {
                 <?php
                 echo ($discussion['author_id'] ? 'Someone' : 'Guest');
                 ?>
+                <span id='is-saved'></span>
               </span>
             </div>
             <div class='card-body'>
@@ -196,12 +197,81 @@ function readyStateHandler() {
   }
 }
 
+function saved_info_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+        //
+      } else {
+        if (rjs.data[0]) {
+          inner_html('is-saved', "(<a id='remove-saved' href='#'>Remove from saved</a>)");
+        } else {
+          inner_html('is-saved', "(<a id='add-saved' href='#'>Add to saved</a>)");
+        }
+      }
+    }
+  }
+}
+function add_saved_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+        //
+      } else {
+        if (rjs.data[0]) {
+          inner_html('is-saved', "(<a id='remove-saved' href='#'>Remove from saved</a>)");
+        } else {
+          //inner_html('is-saved', "(<a id='add-saved' href='#'>Add to saved</a>)");
+        }
+      }
+    }
+  }
+}
+function remove_saved_handler() {
+  if (this.readyState==4) {
+    if (this.status==200) {
+      var rjs = JSON.parse(this.responseText);
+      if (rjs.error[0]) {
+      } else {
+        if (rjs.data[0]) {
+          inner_html('is-saved', "(<a id='add-saved' href='#'>Add to saved</a>)");
+        } else {
+          //inner_html('is-saved', "(<a id='remove-saved' href='#'>Remove from saved</a>)");
+        }
+      }
+    }
+  }
+}
+
 (function() {
   disable_submit(document.reply_form);
   document.reply_form.dc.addEventListener('input', check_reply);
   ajax('GET'
   ,    '/api/v1/replies.php?discussion_id=<?php echo $discussion_id; ?>'
   ,    readyStateHandler);
+  <?php
+  if (isset($_SESSION['user_id'])) {
+    echo "ajax('GET'
+    ,    '/api/v1/is-saved.php?discussion_id=$discussion_id'
+    ,    saved_info_handler);";
+    echo "document.body.addEventListener('click', function(e) {
+      if (e.srcElement.id=='add-saved') {
+        ajax('GET'
+        ,    '/api/v1/add-saved.php?discussion_id=$discussion_id'
+        ,    add_saved_handler);
+        return true;
+      }
+      else if (e.srcElement.id=='remove-saved') {
+        ajax('GET'
+        ,    '/api/v1/remove-saved.php?discussion_id=$discussion_id'
+        ,    remove_saved_handler);
+        return true;
+      }
+    });";
+  }
+  ?>
 })();
 </script>
 </body>

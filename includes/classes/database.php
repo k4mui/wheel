@@ -2,6 +2,7 @@
 require_once(__DIR__."/board.php");
 require_once(__DIR__."/discussion.php");
 require_once(__DIR__."/user.php");
+require_once(__DIR__."/../client.php");
 
 $dbname = 'wheelim';
 $dbpwd = 'qwertY33';
@@ -34,6 +35,25 @@ class data_access {
     $ins = new self($mysqli);
     return $ins;
   } // get_instance()
+
+  public function get_all_categories() {
+    $sql = 'SELECT * FROM categories';
+    $result = $this->select($sql);
+    if ($result) {
+      return $result;
+    }
+    throw new database_no_results_error(__FILE__, __LINE__);
+  } // get_all_categories()
+
+  public function get_category($category_id) {
+    $sql = 'SELECT * FROM categories WHERE category_id = ?';
+    $params = array('i', $category_id);
+    $result = $this->prepared($sql, $params);
+    if ($result) {
+      return $result[0];
+    }
+    throw new database_no_results_error(__FILE__, __LINE__);
+  }
 
   public function get_categories($limit=null) {
     $sql = 'SELECT * FROM categories ';
@@ -120,7 +140,26 @@ class data_access {
             WHERE posts.parent_post_id IS NULL
             ORDER BY posts.submitted_ts DESC";
     return $this->select($sql);
-  } // function: get_discussions
+  } // get_discussions()
+
+  public function get_discussions_by_category_id($category_id) {
+    $sql = "SELECT posts.post_title,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            WHERE posts.parent_post_id IS NULL
+                  AND categories.category_id = ?
+            ORDER BY posts.submitted_ts DESC";
+    $params = array('i', $category_id);
+    $result = $this->prepared($sql, $params);
+    return ($result ? $result : null);
+  } // get_discussions()
 
   public function get_recent_discussions($page=null) {
     $sql = "SELECT posts.post_title,
@@ -222,32 +261,42 @@ class data_access {
     return $result[0]['s'];
   } // sum
 
-  public function get_user($email_address) {
-    $sql = "SELECT users.id,
-                   users.role,
-                   users.password_hash,
-                   users.account_status,
-                   moderations.board_id
-            FROM users
-            LEFT JOIN moderations
-            ON users.id = moderations.user_id
-            WHERE users.email_address=?";
-    $params = array('s', strtolower($email_address));
-    return $this->prepared($sql, $params);
-  } // function: get_user
+  public function get_session_id($user_id) {
+    $session_id = md5(
+      get_client_ip() . bin2hex(random_bytes(32)) . uniqid('',true)
+    );
+    $sql = 'INSERT INTO user_sessions
+            VALUES
+              (?, ?)
+            ON DUPLICATE KEY UPDATE
+              session_id = ?';
+    $params = array('sis', $session_id, $user_id, $session_id);
+    $result = $this->prepared($sql, $params, false);
+    if ($result===0) {
+      return $session_id;
+    }
+    throw new database_error(
+      3
+    , 'Inserting session error.'
+    , __FILE__
+    , __LINE__
+    , 'Something went wrong. Please try again later'
+    );
+  } // get_session_id
 
-  public function get_users_cp() {
-    $sql = "SELECT users.id,
-                   users.email_address,
-                   users.role,
-                   users.account_status,
-                   users.registration_timestamp,
-                   moderations.board_id
-            FROM users
-            LEFT JOIN moderations
-            ON users.id = moderations.user_id";
-    return $this->select($sql);
-  } // function: get_user
+  public function get_user($ne) {
+    $sql = 'SELECT * FROM users WHERE user_name = ? OR user_email = ?';
+    $params = array('ss', $ne, $ne);
+    $result = $this->prepared($sql, $params);
+    return $result ? $result[0] : null;
+  } // get_user()
+
+  public function get_user_from_session_id($session_id) {
+    $sql = 'SELECT * FROM user_sessions WHERE session_id = ?';
+    $params = array('s', $session_id);
+    $result = $this->prepared($sql, $params);
+    return $result ? $result[0] : null;
+  } // get_user()
 
   public function insert_discussion($title,
                                     $full_text,
@@ -363,6 +412,32 @@ class data_access {
     return $this->prepared($sql, $params, false);
   } // insert_reply
 
+  public function is_saved($user_id, $discussion_id) {
+    $sql = 'SELECT * FROM saved_posts
+            WHERE user_id=?
+            AND post_id=?';
+    $params = array('ii', $user_id, $discussion_id);
+    $result = $this->prepared($sql, $params);
+    return $result ? true : false;
+  } // is_saved()
+
+  public function add_saved($user_id, $discussion_id) {
+    $sql = 'INSERT INTO saved_posts
+            VALUES (?, ?)';
+    $params = array('ii', $discussion_id, $user_id);
+    $result = $this->prepared($sql, $params, false, true);
+    return $result ? true : false;
+  } // add_saved()
+
+  public function remove_saved($user_id, $discussion_id) {
+    $sql = 'DELETE FROM saved_posts
+            WHERE post_id = ?
+            AND user_id = ?';
+    $params = array('ii', $discussion_id, $user_id);
+    $result = $this->prepared($sql, $params, false, true);
+    return $result ? true : false;
+  } // remove_saved()
+
   public function insert_user($username, $email, $secret, $dob) {
     $sql = "INSERT INTO users
               (user_email, user_name, user_secret, date_of_birth)
@@ -372,7 +447,7 @@ class data_access {
     return $this->prepared($sql, $params, false);
   } // insert_user
 
-  private function prepared(string $sql, array $params, bool $results=true) {
+  private function prepared(string $sql, array $params, bool $results=true, $affected=false) {
     $rows = null;
     $stmt = $this->mysqli->prepare($sql);
 
@@ -404,7 +479,11 @@ class data_access {
         }
       }
     } else { // return last insert id, possibly insert query
-      $rows = $stmt->insert_id;
+      if ($affected) {
+        $rows = $stmt->affected_rows;
+      } else {
+        $rows = $stmt->insert_id;
+      }
       $stmt->close();
     }
 

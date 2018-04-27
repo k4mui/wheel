@@ -232,6 +232,37 @@ class external_service_error extends Exception {
     } // process_error()
 }
 
+class forbidden_access_error extends Exception {
+    private $display_message;
+
+    public function __construct(
+        string $file
+    ,   int $line
+    ,   int $code = 0
+    ,   Exception $previous = null
+    ) {
+        $this->display_message = 'You are not authorized to view this page.';
+        parent::__construct(
+            "Forbidden access request [$file@$line]"
+        ,   $code
+        ,   $previous
+        );
+    } // __construct()
+
+    public function __toString() {
+        return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
+    } // __toString()
+
+    public function process_error(bool $api=false) {
+        http_response_code(403);
+        if ($api) {
+            return $this->display_message;
+        }
+        echo $this->display_message;
+        die();
+    } // process_error()
+}
+
 class invalid_request_method_error extends Exception {
     private $display_message;
 
