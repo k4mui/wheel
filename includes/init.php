@@ -1,6 +1,7 @@
 <?php
 define('DEBUG', false);
-define('WHEEL_ROOT', '/home/obi/dev/localhost/wheel');
+//define('WHEEL_ROOT', '/home/obi/dev/localhost/wheel');
+define('WHEEL_ROOT', dirname(__FILE__).'/..');
 
 error_reporting(E_ERROR /*| E_WARNING*/ | E_PARSE | E_NOTICE);
 ini_set('display_errors', DEBUG ? 'On' : 'Off');

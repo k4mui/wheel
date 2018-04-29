@@ -160,6 +160,9 @@ textarea{
 .category:hover {
     text-decoration: underline;
 }
+.clickable {
+    cursor: pointer;
+}
 .colored {
     color: dodgerblue;
 }
@@ -445,4 +448,11 @@ div[class^='grid-']:not(:first-child) {
 #submit-button:disabled {
     background-color:rgba(139, 58, 103,0.65);
     cursor: not-allowed;
+}
+
+[data-state='subscribed']::before {
+    content: '(Unsubscribe)';
+}
+[data-state='unsubscribed']::before {
+    content: '(Subscribe)';
 }

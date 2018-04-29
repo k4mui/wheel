@@ -1,27 +1,25 @@
 <?php
-$root = dirname(__FILE__);
-require_once("$root/includes/init.php");
-require_once("$root/includes/classes/database.php");
-//require "$root/includes/formatting.php";
+try {
+  $root = dirname(__FILE__);
+  require "$root/includes/init.php";
+  require "$root/includes/formatting.php";
 
-$da = data_access::get_instance();
-if ($da === null) {
-  include("error.php");
-  die();
+  $categories = $da->get_categories();
+  $categories_l = count($categories);
+  switch($_SERVER['REQUEST_METHOD']) {
+    case 'GET': break;
+    case 'POST': require_once('includes/ph/new-discussion.php'); break;
+    default: throw new invalid_request_method_error(__FILE__, __LINE__);
+  }
+  $category = (isset($_GET['c']) && $_GET['c']) ? strtolower($_GET['c']) : null;
+  
+} catch(Exception $e) {
+  if (method_exists($e, 'process_error')) { // check if custom error
+    $e->process_error();
+  }
+  error_log($e);
+  die('Unexpected error occurred. Please try again in a few minutes.');
 }
-$categories = $da->get_categories();
-$categories_l = count($categories);
-unset($da);
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-  require_once('includes/ph/new-discussion.php');
-} elseif ($_SERVER["REQUEST_METHOD"] !== "GET") {
-  $error = "Invalid request!";
-  include("error.php");
-  die();
-}
-$category = (isset($_GET['c']) && $_GET['c']) ? strtolower($_GET['c']) : null;
-//$rows = array();
 
 ?>
 
@@ -56,7 +54,7 @@ $category = (isset($_GET['c']) && $_GET['c']) ? strtolower($_GET['c']) : null;
           <ul class='list list-inline'>
             <li><a href='new-discussion.php'>New Discussion</a></li>
             <?php
-            if (!isset($_SESSION['uid'])) {
+            if (!isset($_SESSION['user_id'])) {
               echo "<li><a href='/register.php'>Register</a></li>
                     <li><a href='/login.php'>Login</a></li>";
             } else {
@@ -119,10 +117,13 @@ $category = (isset($_GET['c']) && $_GET['c']) ? strtolower($_GET['c']) : null;
     </div> <!-- .site-main-grid -->
   </div> <!-- .site-content -->
   <div class='site-footer'>
-    <a href='About'>About</a>
-    <a href='About'>Privacy</a>
+    <a href='/about.php'>About</a>
+    <a href='/privacy.php'>Privacy</a>
     <br>
-    &copy; 2018 wheel. Timezone: Asia/Dhaka.
+    &copy; 2018 wheel. 
+    Timezone: <?php echo $_SESSION['timezone_name']; ?>,
+    Country: <?php echo $_SESSION['country_name']; ?>
+    (<a class='text-bold' href='/preferences.php'>Change</a>)
   </div> <!-- .site-footer -->
 </body>
 </html>

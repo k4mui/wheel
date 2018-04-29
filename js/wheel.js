@@ -1,3 +1,14 @@
+function serialize_object(o) {
+    var q = '';
+    for(var k in o) {
+        if (q != '') {
+            q += '&';
+        }
+        q += (k + '=' + encodeURIComponent(o[k]));
+    }
+    return q;
+}
+
 function ID(id) {
     return document.getElementById(id);
 }
@@ -11,6 +22,10 @@ function ajax(method, url, onReadyStateChange) {
     x.onreadystatechange = onReadyStateChange;
     x.open(method, url, true);
     x.send();
+}
+
+function api(path, params, callback) {
+    ajax('GET', '/api/v1/' + path + '.php?' + serialize_object(params), callback);
 }
 function append_html(id, html_to_append) {
     ID(id).insertAdjacentHTML('beforeend', html_to_append);

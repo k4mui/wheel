@@ -1,118 +1,150 @@
 <?php
-$root = realpath($_SERVER["DOCUMENT_ROOT"]);
-require "$root/lib/init.php";
-require "$root/lib/db.php";
+try {
+  $root = dirname(__FILE__);
+  require "$root/includes/init.php";
+  require "$root/includes/formatting.php";
 
-if ($_SERVER['REQUEST_METHOD'] !== "GET") {
-	die();
+  switch($_SERVER['REQUEST_METHOD']) {
+    case 'GET': break;
+    default: throw new invalid_request_method_error(__FILE__, __LINE__);
+  }
+
+  if (!isset($_SESSION['user_id'])) {
+    throw new forbidden_access_error(__FILE__, __LINE__);
+  }
+
+  if (isset($_GET['rbm'])) {
+    $posts = $da->get_replies_by_user_id($_SESSION['user_id']);
+    $list_header = 'Replies by Me';
+    $active_link = 2;
+  } elseif (isset($_GET['cs'])) {
+    $list_header = 'Change Settings';
+    $active_link = 3;
+  } else {
+    $posts = $da->get_discussions_by_user_id($_SESSION['user_id']);
+    $list_header = 'Discussions Created by Me';
+    $active_link = 1;
+  }
+} catch(Exception $e) {
+  if (method_exists($e, 'process_error')) { // check if custom error
+    $e->process_error();
+  }
+  error_log($e);
+  die('Unexpected error occurred. Please try again in a few minutes.');
 }
-if (!$user->is_registered()) {
-  $error = "You need to login first";
-  include("404.php");
-  die();
-}
-$da = new DataAccess;
-$acc = $da->get_account_info($user->get_id());
-//print_r($acc);
+
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!DOCTYPE html>
+<html lang="en-US">
 <head>
 	<meta charset="utf-8">
-  <title>wheel - My Account</title>
-	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css" />
-	<link href="/styles/wheel.css?v=<?php echo time();?>" rel="stylesheet" type="text/css" />
+  <title>wheel - Home</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/16x16.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+	<link href="/fonts/font-awesome/css/fontawesome-all.css" rel="stylesheet" type="text/css">
+	<link href="/css/wheel_v2.css?v=<?php echo time();?>" rel="stylesheet" type="text/css">
 </head>
 <body>
-	<div id="wrap-all">
-  <div id="head">
-			<div id="user-panel">
-				<div class="row">
-          <ul class="list float-left">
-            <li id="home-link"><i class="fas fa-info-circle"></i> <a href="/">FAQ</a></li>
-            <li id="home-link"><i class="fas fa-question-circle"></i> <a href="/">Help</a></li>
-            <li id="home-link"><i class="fas fa-clipboard"></i> <a href="/">Rules</a></li>
+<div class='site-header'>
+    <div class='inner'>
+      <div class='grid'>
+        <div class='site-logo'>
+          <a href='/'></a>
+        </div> <!-- .site-logo -->
+        <div class='site-search'>
+          <form action='/search.php' method='get'>
+            <input type='text' name='q' placeholder='Search'>
+            <button type='submit'>
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
+        <div class='nav-menu'>
+          <ul class='list list-inline'>
+            <li><a href='new-discussion.php'>New Discussion</a></li>
+            <li><a href='/account.php'>Account</a></li>
+            <li><a href='/logout.php'>Logout</a></li>
           </ul>
-					<ul class="list float-right">
-						<?php
-            if ($user->is_admin()) { //admin
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_mod()) { // mod
-              echo '<li><i class="fas fa-envelope"></i> <a href="inbox.php">Admin Panel</a></li>';
-            }
-            if ($user->is_anon()) { // anon
-              echo "<li><i class=\"fas fa-user-plus\"></i> <a href=\"/register.php\">Register</a></li>"
-                .  "<li><i class=\"fas fa-sign-in-alt\"></i> <a href=\"/login.php\">Login</a></li>";
-            }
-            if ($user->is_registered()) { // common for registered
-              echo "<li><i class=\"fas fa-user\"></i> <a href=\"/account.php\">Account</a></li>"
-                .  "<li><i class=\"fas fa-sign-out-alt\"></i> <a href=\"/logout.php\">Logout</a></li>";
-            }
-            ?>
-					</ul>
-				</div> <!-- .row -->
-			</div> <!-- #user-panel -->
-			<div id="site-nav">
-				<div class="row">
-          <img id="site-logo" src="/images/shi.png" />
-          <span id="site-title">wheel</span>
-					<div id="site-search" class="float-right">
-            <form class="input-group" action="/search.php" method="GET">
-              <input type="text" name="q" placeholder="Search discussions..." />
-              <input type="hidden" name="id" value="-1" />
-							<button type="submit">
-								<i class="fas fa-search"></i>
-							</button>
-						</form>
-					</div>
-				</div> <!-- .row -->
-			</div> <!-- #site-nav -->
-			<div id="page-title">
-        <ul class="list">
-          <li><i class="fas fa-home"></i> <a href="/">Boards Index</a></li>
-          <li>/</li>
-          <li><i class="fas fa-search"></i> <a href="/user.php?id=<?php echo -1; ?>">My Account</a></li>
-        </ul>
-			</div> <!-- #page-title -->
-		</div> <!-- #head -->
-		<div id="body-wrapper">
-      <div id="boards-section">
-        <div class="card-header">
-          My Account
         </div>
-        <div class="boards-item">
-          <h3>Statistics</h3>
-          <hr/>
-          <div class="row acc-item">
-            <div class="acc-iteml">Discussions Created:</div> <div class="acc-itemr"><?php echo $acc["discussion_count"]; ?></div>
-          </div>
-          <div class="row acc-item">
-            <div class="acc-iteml">Replies Given:</div> <div class="acc-itemr"><?php echo $acc["reply_count"]; ?></div>
-          </div>
-          <div class="row acc-item">
-            <div class="acc-iteml">Images Uploaded:</div> <div class="acc-itemr"><?php echo (int)$acc["image_count_r"] + (int)$acc["image_count_d"]; ?></div>
-          </div>
-
-          <br/>
-          <h3>Informations</h3>
-          <hr/>
-          <div class="row acc-item">
-            <div class="acc-iteml">Joined On:</div> <div class="acc-itemr"><?php echo $acc["joined_on"]; ?></div>
-          </div>
-          <div class="row acc-item">
-            <div class="acc-iteml">Email Address:</div> <div class="acc-itemr"><?php echo $user->get_email_address(); ?></div>
-          </div>
-          <div class="row acc-item">
-            <div class="acc-iteml">Password:</div> <div class="acc-itemr">&lt;secret&gt;</div>
-          </div>
-        </div>
+      </div> <!-- .grid -->
+    </div> <!-- .inner -->
+  </div> <!-- .site-header -->
+  <div class='site-content'>
+    <div class='site-main-grid'>
+      <div class='col-left'>
+        <div class='block-title'>Account Menu</div>
+        <a class='feed-link <?php echo ($active_link==1?'selected':''); ?>' href='/'>Discussions Created by Me</a>
+        <a class='feed-link <?php echo ($active_link==2?'selected':''); ?>' href='/?rbm'>Replies by Me</a>
+        <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='/?cs'>Change Settings</a>
       </div>
-		</div> <!-- #body-wrapper -->
-		<div id="foot">
-			&copy; 2018 wheel
-		</div> <!-- #footer -->
-	</div> <!-- #wrap-all -->
+      <div class='col-middle'>
+        <div class='block-title'><?php echo $list_header; ?></div>
+        <?php
+          if ($active_link==1) {
+            if ($posts) {
+              foreach($posts as $post) {
+                echo "<div class='card-post-list'>
+                        <div class='post-list-title'>
+                          <a href='view-discussion.php?id={$post['post_id']}'>
+                            <span>{$post['post_title']}</span>
+                          </a>
+                        </div>
+                        <div class='text-mute'>Submitted " . time_elapsed_string($post['submitted_ts']) . 
+                        " · by " . ($post['author_id']?'Someone' : 'Guest') .
+                        " · <span class='text-bold' id='rc{$post['post_id']}'>-</span></div>
+                        <div class='post-list-footer' id='post{$post['post_id']}'>
+                          <span class='badge badge-cat'>Category: <a class='text-bold' href='view-category.php?id={$post['category_id']}'>{$post['category_name']}</a></span>
+                        </div>
+                      </div>";
+              }
+            } else {
+              echo 'No discussions found.';
+            }
+          } else if ($active_link==3) {
+            echo "";
+          }
+          ?>
+      </div>
+      <div class='col-right'>
+        <div class='card'>
+          <div class='card-header'>Categories</div>
+          <?php
+          foreach($categories as $cat) {
+            echo "<a class='category' href='/view-category.php?id={$cat['category_id']}'>{$cat['category_name']}</a>";
+          }
+          ?>
+          <a class='category' href='/view-categories.php'><b>View all categories</b></a>
+        </div> <!-- .card -->
+        <div class='card'>
+          <div class='card-header'>Tags</div>
+          <div class='card-body tags'>
+              <?php
+              foreach($tags as $tag) {
+                echo "<a class='tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
+              }
+              ?>
+          </div>
+          <a class='category' href='/view-tags.php'><b>View all tags</b></a>
+        </div> <!-- .card -->
+      </div>
+    </div> <!-- .site-main-grid -->
+  </div> <!-- .site-content -->
+  <div class='site-footer'>
+    <a href='./about.php'>About</a>
+    <a href='/privacy.php'>Privacy</a>
+    <br>
+    &copy; 2018 wheel.
+    Timezone: <?php echo $_SESSION['timezone_name']; ?>,
+    Country: <?php echo $_SESSION['country_name']; ?>
+    (<a class='text-bold' href='/preferences.php'>Change</a>)
+  </div> <!-- .site-footer -->
+<script type='text/javascript'>
+(function() {
+
+})();
+</script>
 </body>
 </html>

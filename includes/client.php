@@ -28,21 +28,8 @@ function get_client_ip() {
     ) {
     $ip = $_SERVER['HTTP_X_REAL_IP'];
     }
+    return file_get_contents('https://api.ipify.org/');
     return $ip;
-}
-
-function get_client_info() {
-    //$api_token = '45769edaba6feed4489cc3bf5340983817d2855c64eea6b7';
-    $ip = get_client_ip();
-    //echo $ip;
-    //$user_info = json_decode(file_get_contents("https://usercountry.com/v1.0/json/$ip?token=$api_token"), true);
-    $user_info = json_decode(file_get_contents("https://ipapi.co/$ip/json/"), true);
-    //print_r($user_info);
-    /*$city = $user_info['region']['city'];
-    $country = $user_info['country']['alpha-2'];
-    $timezone = $user_info['timezone']['name'];
-    echo "$city - $country - $timezone";*/
-    return $user_info;
 }
 
 function load_client_info(array & $client_info) {

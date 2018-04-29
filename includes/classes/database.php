@@ -5,7 +5,8 @@ require_once(__DIR__."/user.php");
 require_once(__DIR__."/../client.php");
 
 $dbname = 'wheelim';
-$dbpwd = 'qwertY33';
+//$dbpwd = 'qwertY33';
+$dbpwd = '';
 $dbserver = '127.0.0.1';
 $dbuser = 'root';
 
@@ -44,6 +45,24 @@ class data_access {
     }
     throw new database_no_results_error(__FILE__, __LINE__);
   } // get_all_categories()
+
+  public function get_all_countries() {
+    $sql = 'SELECT * FROM countries ORDER BY country_name';
+    $result = $this->select($sql);
+    if ($result) {
+      return $result;
+    }
+    throw new database_no_results_error(__FILE__, __LINE__);
+  } // get_all_countries()
+
+  public function get_all_timezones() {
+    $sql = 'SELECT * FROM timezones_utc_offset';
+    $result = $this->select($sql);
+    if ($result) {
+      return $result;
+    }
+    throw new database_no_results_error(__FILE__, __LINE__);
+  } // get_all_timezones()
 
   public function get_category($category_id) {
     $sql = 'SELECT * FROM categories WHERE category_id = ?';
@@ -161,6 +180,25 @@ class data_access {
     return ($result ? $result : null);
   } // get_discussions()
 
+  public function get_discussions_by_user_id($user_id) {
+    $sql = "SELECT posts.post_title,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            WHERE posts.parent_post_id IS NULL
+                  AND posts.author_id = ?
+            ORDER BY posts.submitted_ts DESC";
+    $params = array('i', $user_id);
+    $result = $this->prepared($sql, $params);
+    return $result ? $result : null;
+  } // get_discussions_by_user_id()
+
   public function get_recent_discussions($page=null) {
     $sql = "SELECT posts.post_title,
                    categories.category_name,
@@ -192,6 +230,29 @@ class data_access {
     return count($result) ? $result[0] : $result;
   } // get_recent_discussion
 
+  public function get_relevant_discussions($page=null) {
+    $sql = "SELECT posts.post_title,
+                   attachments.attachment_name,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            INNER JOIN category_subscriptions
+            ON category_subscriptions.category_id = posts.category_id
+            LEFT JOIN attachments
+            ON attachments.attachment_id=posts.attachment_id
+            WHERE posts.parent_post_id IS NULL
+            AND category_subscriptions.user_id = ?
+            ORDER BY posts.submitted_ts DESC";
+    $params = array('i', $_SESSION['user_id']);
+    return $this->prepared($sql, $params);
+  } // get_discussions()
+
   public function get_replies_by_discussion_id($discussion_id) {
     $sql = "SELECT attachments.attachment_name,
                    posts.post_text,
@@ -207,14 +268,34 @@ class data_access {
     return $this->prepared($sql, $params);
   } // function: get_replies
 
-  public function get_site_stats() {
-    $stats = array(
-      'reply_count' => $this->count_all('replies'),
-      'discussion_count' => $this->count_all('discussions'),
-      'image_count' => $this->count_all('images')
-    );
-    return $stats;
-  } // function: get_site_stats
+  public function get_replies_by_user_id($user_id) {
+    $sql = "SELECT posts.post_title,
+                   categories.category_name,
+                   categories.category_id,
+                   posts.post_text,
+                   posts.author_id,
+                   posts.submitted_ts,
+                   posts.post_id
+            FROM posts
+            INNER JOIN categories
+            ON categories.category_id = posts.category_id
+            WHERE posts.parent_post_id IS NOT NULL
+                  AND posts.author_id = ?
+            ORDER BY posts.submitted_ts DESC";
+    $params = array('i', $user_id);
+    $result = $this->prepared($sql, $params);
+    return $result ? $result : null;
+  } // get_replies_by_user_id()
+
+  public function get_subscribed_categories() {
+    $sql = 'SELECT *
+            FROM categories
+            INNER JOIN category_subscriptions
+            ON categories.category_id=category_subscriptions.category_id
+            WHERE category_subscriptions.user_id=?';
+    $params = array('i', $_SESSION['user_id']);
+    return $this->prepared($sql, $params);
+  } // get_subscribed_categories
 
   public function get_reply_count($post_id) {
     $sql = "SELECT COUNT(post_id) AS reply_count FROM posts WHERE parent_post_id=?";
@@ -242,7 +323,7 @@ class data_access {
   } // get_saved_discussions()
 
   public function get_tags($count) {
-    $sql = "SELECT * FROM post_tags LIMIT $count";
+    $sql = "SELECT * FROM tags LIMIT $count";
     return $this->select($sql);
   }
 
@@ -342,15 +423,34 @@ class data_access {
     return $this->prepared($sql, $params, false);
   } // insert_discussion
 
-  public function insert_tags($post_id, $tags) {
+  public function insert_post_tags($post_id, $tag_ids) {
+    print_r($tag_ids);
     $sql = 'INSERT INTO post_tags VALUES (?, ?)';
-    $params = array('is', $post_id, $tags[0]);
-    foreach($tags as $tag) {
-      $params[2] = $tag;
-      $this->prepared($sql, $params, false);
+    $params = array('ii', $post_id, 1);
+    $affected_rows = 0;
+    foreach($tag_ids as $tag_id) {
+      $params[2] = $tag_id;
+      $result = $this->prepared($sql, $params, false, true);
+      if ($result) {
+        $affected_rows += 1;
+      }
     }
-    return true;
-  }
+    return $affected_rows;
+  } // insert_tags()
+
+  public function insert_tags($tags) {
+    $tag_ids = array();
+    $sql = 'INSERT INTO tags (name) VALUES (?)
+              ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)';
+    foreach($tags as $tag) {
+      $params = array('s', $tag);
+      $result = $this->prepared($sql, $params, false);
+      if ($result) {
+        $tag_ids[] = $result;
+      }
+    }
+    return $tag_ids;
+  } // insert_tags()
 
   private function get_extension($mime) {
     switch($mime) {
@@ -398,7 +498,7 @@ class data_access {
       return null;
     }
     $filename = md5_file($image['tmp_name']).'.'.$ext;
-    $image_dir= '/home/obi/dev/localhost/wheel/images/usercontents/';
+    $image_dir= __DIR__.'/../../images/usercontents/';
 
     if (!file_exists("$image_dir$filename")) { // file not in server already
       if(!move_uploaded_file($image['tmp_name'], "$image_dir$filename")) { // cannot move file to dest
@@ -406,11 +506,20 @@ class data_access {
       }
     }
 
-    $sql = 'INSERT INTO attachments(attachment_name, attachment_size) VALUES (?, ?)';
+    $sql = 'INSERT INTO attachments
+              (attachment_name, attachment_size)
+            VALUES
+              (?, ?)
+            ON DUPLICATE KEY UPDATE
+              attachment_id = LAST_INSERT_ID(attachment_id)';
     $params = array('si', $filename, $image['size']);
 
-    return $this->prepared($sql, $params, false);
-  } // insert_image
+    $result = $this->prepared($sql, $params, false);
+    if ($result) {
+      return $result;
+    }
+    throw new database_no_result_error(__FILE__, __LINE__);
+  } // insert_image()
 
   public function insert_reply($full_text,
                                $image_id,
@@ -457,13 +566,13 @@ class data_access {
     return $result ? true : false;
   } // add_saved()
 
-  public function subscribe($user_id, $category_id) {
+  public function add_subscription($user_id, $category_id) {
     $sql = 'INSERT INTO category_subscriptions
             VALUES (?, ?)';
     $params = array('ii', $category_id, $user_id);
     $result = $this->prepared($sql, $params, false, true);
     return $result ? true : false;
-  } // subscribe()
+  } // add_subscription()
 
   public function remove_saved($user_id, $discussion_id) {
     $sql = 'DELETE FROM saved_posts
@@ -474,14 +583,14 @@ class data_access {
     return $result ? true : false;
   } // remove_saved()
 
-  public function unsubscribe($user_id, $category_id) {
+  public function remove_subscription($user_id, $category_id) {
     $sql = 'DELETE FROM category_subscriptions
             WHERE category_id = ?
             AND user_id = ?';
     $params = array('ii', $category_id, $user_id);
     $result = $this->prepared($sql, $params, false, true);
     return $result ? true : false;
-  } // unsubscribe()
+  } // remove_subscription()
 
   public function insert_user($username, $email, $secret, $dob) {
     $sql = "INSERT INTO users
@@ -534,6 +643,12 @@ class data_access {
 
     return $rows;
   } // prepared()
+
+  public function remove_user_session($user_id) {
+    $sql = 'DELETE FROM user_sessions WHERE user_id=?';
+    $params = array('i', $user_id);
+    $this->prepared($sql, $params);
+  } // remove_user_session()
 
   private function select(string $sql) {
     $rows = array();

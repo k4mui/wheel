@@ -42,6 +42,7 @@ if (!isset($_SESSION['user_id'])) {
         $user = $da->get_user_from_session_id($cookie_value);
         if ($user) {
             $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['cookie_login'] = 1;
         }
     }
 }

@@ -12,17 +12,25 @@ try {
 
   $tags = $da->get_tags(24);
   $categories = $da->get_categories(12);
+  if (isset($_SESSION['user_id'])) {
+    $subscribed_categories = $da->get_subscribed_categories();
+  }
   if (isset($_GET['tr'])) {
     //$posts = $da->get_trending_discussions();
     $list_header = 'Top Trending Discussions';
     $active_link = 3;
   } elseif (isset($_GET['sd'])) {
-    if (!isset($_SESSION['user_id'])) {
-      throw new forbidden_access_error(__FILE__, __LINE__);
+    if (isset($_SESSION['user_id'])) {
+      $posts = $da->get_saved_discussions();
+      $list_header = 'Saved Discussions';
+      $active_link = 2;
     }
-    $posts = $da->get_saved_discussions();
-    $list_header = 'Saved Discussions';
-    $active_link = 2;
+  } elseif (isset($_GET['dfu'])) {
+    if (isset($_SESSION['user_id'])) {
+      $posts = $da->get_relevant_discussions();
+      $list_header = 'Discussions for You';
+      $active_link = 4;
+    }
   } else {
     $posts = $da->get_discussions();
     $list_header = 'Latest discussions';
@@ -89,8 +97,28 @@ try {
       <div class='col-left'>
         <div class='block-title'>Feed</div>
         <a class='feed-link <?php echo ($active_link==1?'selected':''); ?>' href='/'>Latest Discussions</a>
-        <a class='feed-link <?php echo ($active_link==2?'selected':''); ?>' href='?sd'>Saved Discussions</a>
-        <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='?tr'>Top Trending</a>
+        <?php
+        if (isset($_SESSION['user_id'])) {
+          echo "<a class='feed-link " . ($active_link==4?'selected':'') . "' href='/?dfu'>Discussions for You</a>
+                <a class='feed-link " . ($active_link==2?'selected':'') . "' href='/?sd'>Saved Discussions</a>";
+        }
+        ?>
+        <a class='feed-link <?php echo ($active_link==3?'selected':''); ?>' href='/?tr'>Top Trending</a>
+        <br>
+        <div class='block-title'>Subscribed Categories</div>
+        <?php
+        if (isset($_SESSION['user_id'])) {
+          if ($subscribed_categories) {
+            foreach($subscribed_categories as $subscribed_category) {
+              echo "<a class='feed-link' href='/view-category.php?id=${subscribed_category['category_id']}'>${subscribed_category['category_name']}</a>";
+            }
+          } else {
+            echo "<div class='text-mute'>You haven't subscribed to any categories yet.</div>";
+          }
+        } else {
+          echo "<div class='text-mute'><a href='/login.php'>Login</a> or <a href='/register.php'>Register</a> to subscribe to your favourite categories.</div>";
+        }
+        ?>
       </div>
       <div class='col-middle'>
         <div class='block-title'><?php echo $list_header; ?></div>
@@ -112,7 +140,7 @@ try {
                     </div>";
             }
           } else {
-            echo 'No posts sorry :(';
+            echo 'No discussions found.';
           }
           ?>
       </div>
@@ -131,7 +159,7 @@ try {
           <div class='card-body tags'>
               <?php
               foreach($tags as $tag) {
-                echo "<a class='tag' href='/view-tag.php?t={$tag['tag']}'>{$tag['tag']}</a>";
+                echo "<a class='tag' href='/view-tag.php?id={$tag['id']}'>{$tag['name']}</a>";
               }
               ?>
           </div>
@@ -147,7 +175,7 @@ try {
     &copy; 2018 wheel.
     Timezone: <?php echo $_SESSION['timezone_name']; ?>,
     Country: <?php echo $_SESSION['country_name']; ?>
-    (<a class='text-bold' href=''>Change</a>)
+    (<a class='text-bold' href='/preferences.php'>Change</a>)
   </div> <!-- .site-footer -->
 <script type='text/javascript'>
 (function() {

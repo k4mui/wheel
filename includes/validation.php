@@ -95,8 +95,8 @@ function check_discussion_content($text, & $errors) {
   $len = strlen($text);
   if ($len < 12) {
     $errors[] = "Discussion content must be at least 12 characters long.";
-  } else if ($len > 4096) {
-    $errors[] = "Discussion content must be at most 4,096 characters long.";
+  } else if ($len > 8192) {
+    $errors[] = "Discussion content must be at most 8,192 characters long.";
   }
 }
 
@@ -104,12 +104,17 @@ function check_discussion_tags(& $tags, & $errors) {
   $tags_l = count($tags);
   if ($tags_l) {
     if ($tags_l > 10) {
-      $errors[] = "At most 10 tags can be used. You have provided $tags_l.";
+      $errors[] = "Maximum 10 tags can be used. You have provided $tags_l.";
     } else {
       foreach($tags as $index=>$tag) {
         $tags[$index] = strtolower(trim($tags[$index]));
-        if (!preg_match("/^[a-z0-9-]*$/", $tags[$index])) {
-            $errors[] = "Invalid tag: {$tags[$index]}";
+        if (strlen($tags[$index]) < 3) {
+          $errors[] = 'Minimum length for each tag is 3.';
+        } elseif (strlen($tags[$index]) > 32) {
+          $errors[] = 'Maximum length for each tag is 32.';
+        } elseif (!preg_match("/^[a-z0-9]+[a-z0-9-]+[a-z0-9]+$/", $tags[$index])) {
+            $errors[] = "Invalid tag: {$tags[$index]}. Tag must start and end with a 
+                         letter or digit and can only contain letters, digits and hyphen(-).";
         }
       }
     }
